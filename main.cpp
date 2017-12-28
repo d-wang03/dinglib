@@ -16,8 +16,7 @@ public:
     {
         std::cout << "signal1 triggered:"
                   << a << b << c << std::endl;
-        emitSignal(__func__, &MyObject::signal1, a, b, c);
-//        call_func(&MyObject::slot1, a, b, c);
+        emitSignal(&MyObject::signal1, a, b, c);
     }
     void slot1(int a, double b, float c)
     {
@@ -50,8 +49,8 @@ int main()
 {
     std::shared_ptr<MyObject> ptr1(new MyObject);
     std::shared_ptr<MyObject> ptr2(new MyObject);
-    ptr1->connect("signal1", ptr2, &MyObject::slot1);
-    ptr1->connect("signal2", ptr2, &MyObject::slot2);
+    ptr1->connect(&MyObject::signal1, ptr2, &MyObject::slot1);
+    ptr1->connect(&MyObject::signal2, ptr2, &MyObject::slot2);
     ptr1->signal1(10, 10.888888888888888888, 3.2222f);
     ptr1->signal2(100);
     return 0;
