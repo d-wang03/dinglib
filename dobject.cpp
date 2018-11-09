@@ -6,20 +6,10 @@ namespace ding
 DSignal::DSignal(const std::string& name, SigFunc func): m_name(name), m_func(func)
 {}
 DSignal::~DSignal() = default;
-DSignal::DSignal(const DSignal& other) = default;
-DSignal& DSignal::operator=(const DSignal& other)
-{
-    m_name = other.m_name;
-    m_func = other.m_func;
-    return *this;
-}
-DSignal::DSignal(DSignal&& other)noexcept = default;
-DSignal& DSignal::operator=(DSignal&& other)noexcept
-{
-    m_name = std::move(other.m_name);
-    m_func = std::move(other.m_func);
-    return *this;
-}
+DSignal::DSignal(const DSignal&) = default;
+DSignal& DSignal::operator=(const DSignal& other) = default;
+DSignal::DSignal(DSignal&&)noexcept = default;
+DSignal& DSignal::operator=(DSignal&& other) = default;
 
 DObject::DObject()
 {

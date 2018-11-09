@@ -22,7 +22,7 @@ public:
     DSignal(const DSignal& other);
     DSignal& operator=(const DSignal& other);
     DSignal(DSignal&& other)noexcept;
-    DSignal& operator=(DSignal&& other)noexcept;
+    DSignal& operator=(DSignal&& other);
     virtual ~DSignal();
 
     virtual void clear() = 0;
@@ -109,7 +109,7 @@ public:
     template<typename F, typename... Args>
     void call(F&& func, Args&&... args)
     {
-        (this->*func)(args...);
+        (this->*func)(std::forward<Args>(args)...);
     }
 
     template<typename T,
