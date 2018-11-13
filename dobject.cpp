@@ -1,24 +1,93 @@
 #include "dobject.h"
+#include "dobject_p.h"
 
 namespace ding
 {
 
-DSignal::DSignal(const std::string& name, SigFunc func): m_name(name), m_func(func)
-{}
-DSignal::~DSignal() = default;
-DSignal::DSignal(const DSignal&) = default;
-DSignal& DSignal::operator=(const DSignal& other) = default;
-DSignal::DSignal(DSignal&&)noexcept = default;
-DSignal& DSignal::operator=(DSignal&& other) = default;
-
-DObject::DObject()
+//Class DSignal
+class DSignal
 {
+public:
+    using SigFunc = void (DObject::*)();
+    struct DSlot
+    {
+        std::weak_ptr<DObject> m_obj;
+        SigFunc m_slot;
+        DSlot(std::weak_ptr<DObject>&&obj, SigFunc&& slot)
+            : m_obj(std::move(obj)), m_slot(std::move(slot))
+        {}
+    };
 
+    DSignal(const std::string& name, SigFunc&& func): m_name(name), m_func(func)
+    {
+    }
+    DSignal(const DSignal& other) = default;
+    DSignal& operator=(const DSignal& other) = default;
+    DSignal(DSignal&& other)noexcept = default;
+    DSignal& operator=(DSignal&& other) = default;
+    ~DSignal() = default;
+
+    void clear()
+    {
+        m_slots.clear();
+    }
+
+    void removeSlotFromObj(std::weak_ptr<DObject>&& obj)
+    {
+        m_slots.remove_if([&obj](const DSlot & slot)
+        {
+            return !slot.m_obj.owner_before(obj) && !obj.owner_before(slot.m_obj);
+        });
+    }
+
+    std::string getName()const
+    {
+        return m_name;
+    }
+    SigFunc getFunc()const
+    {
+        return m_func;
+    }
+
+    std::list <DSlot> getSlots()const {return m_slots;}
+    void addSlot(std::weak_ptr<DObject>&& obj, SigFunc&& slot)
+    {
+        m_slots.emplace_back(std::move(obj), std::move(slot));
+    }
+
+    void removeSlot(std::weak_ptr<DObject>&&obj, SigFunc&& slot)
+    {
+        m_slots.remove_if([&obj, &slot](const DSlot & item)
+        {
+            return !item.m_obj.owner_before(obj) && !obj.owner_before(item.m_obj)
+                   && item.m_slot == slot;
+        });
+    }
+private:
+    std::string m_name;
+    SigFunc m_func;
+    std::list <DSlot> m_slots;
+};
+
+// Class DObjectPrivate
+DObjectPrivate::DObjectPrivate() = default;
+DObjectPrivate::DObjectPrivate(const DObjectPrivate &) = default;
+DObjectPrivate &DObjectPrivate::operator=(const DObjectPrivate &) = default;
+DObjectPrivate::DObjectPrivate(DObjectPrivate &&) noexcept = default;
+DObjectPrivate &DObjectPrivate::operator=(DObjectPrivate &&) = default;
+DObjectPrivate::~DObjectPrivate() = default;
+
+DObjectPrivate *DObjectPrivate::clone() const
+{
+    return new DObjectPrivate(*this);
 }
 
-DObject::~DObject() = default;
+DObjectPrivate *DObjectPrivate::move() noexcept
+{
+    return new DObjectPrivate(std::move(*this));
+}
 
-std::vector<std::shared_ptr<DSignal>>::const_iterator DObject::findSignal(DSignal::SigFunc signal)const
+std::vector<std::shared_ptr<DSignal>>::const_iterator DObjectPrivate::findSignal(void (DObject::*signal)())const
 {
     return std::find_if(m_signalList.cbegin(), m_signalList.cend(), [signal](const std::shared_ptr<DSignal>& item)
     {
@@ -26,7 +95,7 @@ std::vector<std::shared_ptr<DSignal>>::const_iterator DObject::findSignal(DSigna
     });
 }
 
-std::vector<std::shared_ptr<DSignal>>::const_iterator DObject::findSignal(std::string signal)const
+std::vector<std::shared_ptr<DSignal>>::const_iterator DObjectPrivate::findSignal(std::string signal)const
 {
     return std::find_if(m_signalList.cbegin(), m_signalList.cend(), [signal](const std::shared_ptr<DSignal>& item)
     {
@@ -34,15 +103,87 @@ std::vector<std::shared_ptr<DSignal>>::const_iterator DObject::findSignal(std::s
     });
 }
 
+
+// Class DObject
+D_REGISTER_OBJECT_CLASS(DObject);
+/*!
+    Constructs a DObject instance with type info "DObject".
+    \note This ctor SHOULD NOT been used in derived classes.
+ */
+DObject::DObject()
+    : DObjectBase(__func__, *new DObjectPrivate())
+{
+    ADD_SIGNAL(DObject, logging);
+}
+
+/*!
+    Constructs a DObject instance with \a type.
+    \note It is recommended to use this constructor in derived classes.
+ */
+DObject::DObject(const std::string &type)
+    : DObjectBase(type, *new DObjectPrivate())
+{
+    ADD_SIGNAL(DObject, logging);
+}
+
+/*!
+    Constructs a DObject instance with \a type and the private instance \a dd.
+    \note It is used for Pimpl Idiom in derived classes.
+ */
+DObject::DObject(const std::string &type, DObjectPrivate &dd)
+    : DObjectBase(type, dd)
+{
+    ADD_SIGNAL(DObject, logging);
+}
+
+/*!
+    Copy ctor based on \a other.
+ */
+DObject::DObject(const DObject &) = default;
+
+/*!
+    Copy assignment operator based on \a rhs.
+ */
+DObject &DObject::operator=(const DObject &) = default;
+
+/*!
+    Move ctor for \a other.
+ */
+DObject::DObject(DObject &&) noexcept = default;
+/*!
+    Move assignment operator for \a rhs.
+ */
+DObject &DObject::operator=(DObject &&) = default;
+
+/*!
+    Destroys a DObject instance.
+ */
+DObject::~DObject() = default;
+/*!
+    Returns \c DObject* to the clone of this object.
+ */
+DObject *DObject::clone() const
+{
+    return new DObject(*this);
+}
+/*!
+    Move this object to a new object, and return its pointer \c DObject*.
+ */
+DObject *DObject::move() noexcept
+{
+    return new DObject(std::move(*this));
+}
+
 bool DObject::disconnect(const std::string& signalname, std::weak_ptr<DObject> obj)
 {
+    D_D(DObject);
     if(signalname.empty())
     {
-        m_signalList.clear();
+        d.m_signalList.clear();
         return true;
     }
-    auto it = findSignal(signalname);
-    if(it == m_signalList.cend())
+    auto it = d.findSignal(signalname);
+    if(it == d.m_signalList.cend())
     {
         return false;
     }
@@ -51,6 +192,51 @@ bool DObject::disconnect(const std::string& signalname, std::weak_ptr<DObject> o
     else
         (*it)->clear();
     return true;
+}
+
+bool DObject::addSignalImp(const std::string &name, SigSlotFunc&& signal)
+{
+    D_D(DObject);
+    auto it = d.findSignal(signal);
+    if(it != d.m_signalList.cend())
+        return false;
+    d.m_signalList.emplace_back(std::make_shared<DSignal>(name, std::move(signal)));
+    return true;
+}
+bool DObject::connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot)
+{
+    D_D(DObject);
+    auto it = d.findSignal(signal);
+    if(it == d.m_signalList.cend())
+        return false;
+
+    (*it)->addSlot(std::move(receiver), std::move(slot));
+    return true;
+}
+bool DObject::disconnectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot)
+{
+    D_D(DObject);
+    auto it = d.findSignal(signal);
+    if(it == d.m_signalList.cend())
+        return false;
+
+    (*it)->removeSlot(std::move(receiver), std::move(slot));
+    return true;
+}
+
+void DObject::emitSignalImp(SigSlotFunc&& signal, std::function<void (const std::shared_ptr<DObject>&, SigSlotFunc)>&& func)
+{
+    D_D(DObject);
+    auto it = d.findSignal(signal);
+    if(it == d.m_signalList.cend())
+        return;
+
+    for(DSignal::DSlot slot : (*it)->getSlots())
+    {
+       auto ptr = slot.m_obj.lock();
+       if(ptr)
+           func(ptr,slot.m_slot);
+    }
 }
 
 }

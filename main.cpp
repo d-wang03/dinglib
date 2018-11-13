@@ -6,12 +6,13 @@ using namespace ding;
 class MyObject: public DObject
 {
 public:
-    MyObject(): DObject()
+    MyObject(): DObject(),m_int(0)
     {
         addSignal("signal1", &MyObject::signal1);
         addSignal("signal2", &MyObject::signal2);
         addSignal("signal3", &MyObject::signal3);
     }
+    virtual ~MyObject()override = default;
     void signal1(int a, double b, float c)
     {
         std::cout << "Signal1 triggered:"
@@ -20,6 +21,7 @@ public:
     }
     void slot1(int a, double b, float c)
     {
+        m_int = 1;
         std::cout << "Slot1 triggered:"
                   << a << "," << b << "," << c << std::endl;
     }
@@ -30,15 +32,17 @@ public:
     }
     void slot2(int a)
     {
+        m_int = 2;
         std::cout << "Slot2 triggered:" << a << std::endl;
     }
     void signal3()
     {
         std::cout << "Signal3 triggered." << std::endl;
-        EMIT(MyObject, signal3)
+        EMIT(MyObject, signal3);
     }
     void slot3()
     {
+        m_int = 3;
         std::cout << "Slot3 triggered." << std::endl;
     }
 
@@ -47,6 +51,7 @@ public:
 //    {
 //        call(static_cast<T DObject::*>(func), std::forward<Args>(args)...);
 //    }
+    int m_int;
 };
 
 int main()
