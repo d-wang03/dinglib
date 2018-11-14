@@ -11,8 +11,9 @@
 
 //macros for signal and slot mechanism.
 #define SIGNAL(class_name, signal_name) public: \
-    void signal_name(int param)\
+    void signal_name(DParam param)\
     {\
+        param.setTrigger(#class_name, #signal_name);\
         emitSignal(&class_name::signal_name, param);\
     }
 
@@ -28,7 +29,7 @@
 #define DISABLE_COPY(Class) \
     Class(const Class &) = delete;\
     Class &operator=(const Class &) = delete;\
-    virtual Class* clone()const noexcept override {return nullptr;}
+    virtual Class* clone()const override {return nullptr;}
 
 #define DISABLE_MOVE(Class) \
     Class(Class &&) = delete; \

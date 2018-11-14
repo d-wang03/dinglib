@@ -24,7 +24,7 @@ public:
     // dtor
     virtual ~DParam() override;
     // clone
-    virtual DParam *clone() const noexcept override;
+    virtual DParam *clone() const override;
     // move
     virtual DParam *move() noexcept override;
 
@@ -36,9 +36,9 @@ public:
     bool operator==(const DParam &rhs) const;
 
     // properties
-    std::weak_ptr<DObject> getTriggerObj() const;
-    std::string getTriggerSig() const;
-    void setTrigger(std::weak_ptr<DObject> &&obj, std::string signal);
+    std::string getTriggerName() const;
+    std::string getTriggerSignal() const;
+    void setTrigger(std::string obj, std::string signal);
 
 protected:
     DParam(const std::string &type) noexcept;

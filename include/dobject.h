@@ -1,14 +1,9 @@
 #ifndef DOBJECT_H
 #define DOBJECT_H
 
-#include <unordered_map>
-#include <list>
-#include <memory>
-#include <algorithm>
-#include <iostream>
-
 #include "dobjectbase.h"
 #include "dglobal.h"
+#include "dlogmsg.h"
 
 namespace ding
 {
@@ -86,6 +81,31 @@ public:
                 obj->call(func, std::forward<Args>(args)...);
         });
     }
+
+    //logging methods
+    template <typename... Args>
+    void loggingD(const char *format, Args &&... args)
+    {
+        logging(DLogMsg(DLogMsg::Debug, getTypeName(), format, std::forward<Args>(args)...));
+    }
+
+    template <typename... Args>
+    void loggingI(const char *format, Args &&... args)
+    {
+        logging(DLogMsg(DLogMsg::Info, getTypeName(), format, std::forward<Args>(args)...));
+    }
+
+    template <typename... Args>
+    void loggingW(const char *format, Args &&... args)
+    {
+        logging(DLogMsg(DLogMsg::Warning, getTypeName(), format, std::forward<Args>(args)...));
+    }
+
+    template <typename... Args>
+    void loggingE(const char *format, Args &&... args)
+    {
+        logging(DLogMsg(DLogMsg::Error, getTypeName(), format, std::forward<Args>(args)...));
+    }
 protected:
     DObject(const std::string &type);
     DObject(const std::string &type, DObjectPrivate &dd);
@@ -95,6 +115,12 @@ private:
     bool disconnectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot);
     void emitSignalImp(SigSlotFunc&& signal, std::function<void (const std::shared_ptr<DObject>&, SigSlotFunc)>&& func);
 };
+
+template <typename T, typename... Args>
+auto makeObject(Args &&... args)
+{
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
 
 }
 

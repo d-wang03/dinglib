@@ -1,7 +1,8 @@
 #ifndef DOBJECT_P_H_
 #define DOBJECT_P_H_
+
 #include "dobject.h"
-#include <unordered_set>
+#include <vector>
 
 namespace ding
 {
@@ -27,6 +28,6 @@ public:
     std::vector<std::shared_ptr<DSignal>> m_signalList;
 };
 
-} // namespace UmbrellaFramework
+} // namespace ding
 
 #endif /* DOBJECT_P_H_ */

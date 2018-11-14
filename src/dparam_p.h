@@ -1,14 +1,10 @@
 #ifndef DMSG_P_H_
 #define DMSG_P_H_
 
-#include "dobjectbase.h"
-#include "dglobal.h"
-#include <string>
+#include "dparam.h"
 
 namespace ding
 {
-class DParam;
-class DObject;
 class DParamPrivate : public DObjectData
 {
 public:
@@ -23,10 +19,10 @@ public:
     virtual DParamPrivate *move() noexcept override;
 
 private:
-    std::weak_ptr<DObject> m_triggerObj;
-    std::string m_triggerSig;
+    std::string m_triggerName;
+    std::string m_triggerSignal;
 };
 
-} // namespace UmbrellaFramework
+} // namespace ding
 
 #endif /* TMSG_P_H_ */

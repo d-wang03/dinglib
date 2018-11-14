@@ -4,11 +4,11 @@ namespace ding
 {
 /*!
     \class ding::DObjectBase
-    \brief The DObjectBase class is the root class of Umbrella Framework.
+    \brief The DObjectBase class is the root class of ding library.
     \ingroup core
     \inmodule ding
 
-    Ding Framework are based on two models, object model and parameter model.
+    Ding library is based on two models, object model and parameter model.
     These models are all derived from DObjectBase.
 
     DObjectBase defined the Pimpl Idiom, the outer class only define interfaces, the implementations

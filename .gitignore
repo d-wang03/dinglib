@@ -1,0 +1,65 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Scripts
+document.bat
+package.bat
+package-lock.json
+
+# zip files
+*.zip
+*.7z
+
+# Folders
+.externalToolBuilders/
+.settings/
+arm/
+export/
+tools/
+doc/html/
+doc/include/
+bin/
+build/
+node_modules/
+build*/
+
+#auto generated version files
+src/version.h
+src/version.c
+
+# unused project files
+*.user
+
+#logs
+log.txt
+

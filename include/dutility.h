@@ -58,15 +58,15 @@ std::string string_format(const std::string &fmt, Args &&... args)
 }
 
 //recruit calling function F on args.
-//template <typename F>
-//void recruitArgs(F f) {(void)f;}
-//
-//template<typename F, typename First, typename... Rest>
-//void recruitArgs(F f, First&& first, Rest&&... args)
-//{
-//    f(std::forward<First>(first));
-//    recruitArgs(f,std::forward<Rest>(args)...);
-//}
+template <typename F>
+void recruitArgs(F f) {(void)f;}
 
-}  // namespace UmbrellaFramework
+template<typename F, typename First, typename... Rest>
+void recruitArgs(F f, First&& first, Rest&&... args)
+{
+    f(std::forward<First>(first));
+    recruitArgs(f,std::forward<Rest>(args)...);
+}
+
+}  // namespace ding
 #endif /* DUTILITY_H_ */

@@ -1,4 +1,3 @@
-#include "dparam.h"
 #include "dparam_p.h"
 #include "dutility.h"
 #include "dobject.h"
@@ -7,7 +6,7 @@ namespace ding
 {
 /*!
     \class ding::DParam
-    \brief The DParam class is the root class of Umbrella Framework's parameter model.
+    \brief The DParam class is the root class of ding libraries' parameter model.
     \ingroup core
     \inmodule ding
 
@@ -16,7 +15,7 @@ namespace ding
 
     To cover the needs for different objects, a lot of parameter classes are designed to inherit DParam class.
 
-    Since there is many parameter classes, It is recommended to check if the parameter's type is expected,
+    Since there is many parameter classes, it is recommended to check if the parameter's type is expected,
     using the methods introduced in \l DObjectBase. Like the following code:
     \code
     void mySlotFunc(DParam& param)
@@ -31,12 +30,6 @@ namespace ding
     Equalization is an important method in parameter classes. \l equals() must be override in derived classes.
     Then, checking equalization can simply use operator ==.
 
-    When a signal is emitted to trigger the connected slots, the signal name and the trigger object is
-    recorded in the parameter object. Programmers can get them through getTriggerObj() and getTriggerSig().
-
-    Although setTrigger() is declared public, all manual invokes are forbidenned. It is for internal usage when a
-    signal emitted.
-
     As introduced in \l DObjectBase, type string must be set correctly. It is recommended to set type in constructor.
     \code
     MyParam():DParam(__func__)
@@ -46,7 +39,7 @@ namespace ding
     \endcode
 
     To assist debugging, virtual function toString() is provided. Programmers can check the parameter content
-    simply by printing the string.
+    simply by printing this string.
 
     \sa DObjectBase
 */
@@ -112,23 +105,23 @@ DParam &DParam::operator=(DParam &&) = default;
 DParam::~DParam() {}
 
 /*!
-    Returns the \c trigger object.
-    If there is no trigger, returns \c nullptr.
+    Returns the \c trigger name.
+    If there is no trigger, returns empty std::string.
  */
-std::weak_ptr<DObject> DParam::getTriggerObj() const
+std::string DParam::getTriggerName() const
 {
     D_D_CONST(DParam);
-    return d.m_triggerObj;
+    return d.m_triggerName;
 }
 
 /*!
     Returns the \c signal emitted with this parameter.
     If there is no trigger, returns empty std::string.
  */
-std::string DParam::getTriggerSig() const
+std::string DParam::getTriggerSignal() const
 {
     D_D_CONST(DParam);
-    return d.m_triggerSig;
+    return d.m_triggerSignal;
 }
 
 /*!
@@ -136,11 +129,11 @@ std::string DParam::getTriggerSig() const
     Sets the trigger with \a obj and \a signal.
     \note This function is used internally.
  */
-void DParam::setTrigger(std::weak_ptr<DObject> &&obj, std::string signal)
+void DParam::setTrigger(std::string obj, std::string signal)
 {
     D_D(DParam);
-    d.m_triggerObj = std::move(obj);
-    d.m_triggerSig = std::move(signal);
+    d.m_triggerName = std::move(obj);
+    d.m_triggerSignal = std::move(signal);
 }
 
 /*!
@@ -149,7 +142,7 @@ void DParam::setTrigger(std::weak_ptr<DObject> &&obj, std::string signal)
     It is strongly recommended to implement own copy function for each
     derived class. Do deep copy, avoid shadow copy.
  */
-DParam *DParam::clone() const noexcept
+DParam *DParam::clone() const
 {
     return new DParam(*this);
 }

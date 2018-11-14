@@ -1,6 +1,9 @@
 #include "dobject.h"
 #include "dobject_p.h"
 
+#include <list>
+#include <algorithm>
+
 namespace ding
 {
 

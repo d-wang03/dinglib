@@ -86,6 +86,6 @@ public:
     DRegister(const char *objectClassName, DNewObjectFunc np);
 };
 
-} // namespace UmbrellaFramework
+} // namespace ding
 
 #endif // DBASEOBJECT_H
