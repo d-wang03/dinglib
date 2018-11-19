@@ -60,18 +60,18 @@ protected:
     std::unique_ptr<DObjectData> d_ptr;
 };
 
-typedef DObjectBase *(*DNewObjectFunc)();
+typedef std::shared_ptr<DObjectBase>(*DNewObjectFunc)();
 
 class DObjectFactory
 {
 public:
     template <typename T, typename = std::enable_if_t<std::is_base_of<DObjectBase, T>::value>>
-    static std::unique_ptr<T> CreateObject(const char *objectClassName)
+    static std::shared_ptr<T> CreateObject(const char *objectClassName)
     {
         auto ins = DObjectFactory::getInstance();
         auto iter = ins.m_dynObjectCreateMap.find(objectClassName);
-        auto ptr = iter == ins.m_dynObjectCreateMap.end() ? nullptr : iter->second();
-        return std::unique_ptr<T>(static_cast<T *>(ptr));
+        return (iter == ins.m_dynObjectCreateMap.end() ?
+                    std::shared_ptr<T>{} : std::static_pointer_cast<T>(iter->second()));
     }
     static void RegisterObjectClass(const char *objectClassName, DNewObjectFunc np);
 

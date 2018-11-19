@@ -59,7 +59,7 @@ DNormalMsgPrivate *DNormalMsgPrivate::move() noexcept
 }
 
 // class DNormalMsg
-D_REGISTER_OBJECT_CLASS(DNormalMsg);
+D_REGISTER_PARAM_CLASS(DNormalMsg);
 
 /*!
     \fn DNormalMsg::DNormalMsg()

@@ -12,6 +12,8 @@ class TestObject : public ::ding::DObject
 {
     SIGNAL(TestObject,sig1)
     SIGNAL(TestObject,sig2)
+    SIGNAL(TestObject,errSig)
+    SIGNAL(TestObject,tempSig)
 private:
     int m_nSlot1Count;
     int m_nSlot2Count;

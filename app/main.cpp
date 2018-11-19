@@ -54,15 +54,37 @@ public:
     int m_int;
 };
 
+class TestMFP
+{
+public:
+    TestMFP()
+    {
+        auto mfp = &TestMFP::testFunc;
+        test(&TestMFP::testFunc);
+    }
+
+    void test(void (TestMFP::*mfp)())
+    {
+        int a = 10;
+    }
+
+    void testFunc(){}
+};
+
 int main()
 {
-    std::shared_ptr<MyObject> ptr1(new MyObject);
-    std::shared_ptr<MyObject> ptr2(new MyObject);
-    ptr1->connect(&MyObject::signal1, ptr2, &MyObject::slot1);
-    ptr1->connect(&MyObject::signal2, ptr2, &MyObject::slot2);
-    ptr1->connect(&MyObject::signal3, ptr2, &MyObject::slot3);
-    ptr1->signal1(10, 10.888888888888888888, 3.2222f);
-    ptr1->signal2(100);
-    ptr1->signal3();
+//    std::shared_ptr<MyObject> ptr1(new MyObject);
+//    std::shared_ptr<MyObject> ptr2(new MyObject);
+//    ptr1->connect(&MyObject::signal1, ptr2, &MyObject::slot1);
+//    ptr1->connect(&MyObject::signal2, ptr2, &MyObject::slot2);
+//    ptr1->connect(&MyObject::signal3, ptr2, &MyObject::slot3);
+//    ptr1->signal1(10, 10.888888888888888888, 3.2222f);
+//    ptr1->signal2(100);
+//    ptr1->signal3();
+    auto obj = new DObject(123);
+    bool ret = obj->isSignal(&DObject::logging);
+    std::cout <<"ret=" << (ret?"true":"false") << std::endl;
+
+    auto f = &testFunc;
     return 0;
 }

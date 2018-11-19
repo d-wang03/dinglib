@@ -24,16 +24,20 @@ public:
         bypass(param);
     }
 
+    virtual inline void addSignals()override
+    {
+        DObject::addSignals();
+        ADD_SIGNAL(DQueueThread, bypass);
+    }
+
 protected:
     DQueueThread(const std::string &type)
         : DCyclicThread(type)
     {
-        ADD_SIGNAL(DQueueThread, bypass);
     }
     DQueueThread(const std::string &type, DCyclicThreadPrivate &dd)
         : DCyclicThread(type, dd)
     {
-        ADD_SIGNAL(DQueueThread, bypass);
     }
 
     // operations

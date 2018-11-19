@@ -54,7 +54,7 @@ DParamPrivate *DParamPrivate::move() noexcept
     return new DParamPrivate(std::move(*this));
 }
 // Class DParam
-D_REGISTER_OBJECT_CLASS(DParam);
+D_REGISTER_PARAM_CLASS(DParam);
 /*!
     Constructs a DParam instance with type "DParam".
     \note It is NOT recommended to use this constructor.
@@ -176,7 +176,7 @@ std::string DParam::toString() const
  */
 bool DParam::equals(const DParam &other) const
 {
-    return typeid(this) == typeid (other);
+    return getTypeName() == other.getTypeName();
 }
 /*!
     Override operator ==.

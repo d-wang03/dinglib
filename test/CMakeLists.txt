@@ -39,5 +39,5 @@ add_executable(${PROJECT_NAME} ${TEST_SRCS}
                ${GTestSrc}/src/gtest-all.cc
                ${GMockSrc}/src/gmock-all.cc)
 add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads umbrella)
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads ding)
 

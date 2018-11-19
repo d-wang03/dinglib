@@ -3,6 +3,7 @@
 
 #include <list>
 #include <algorithm>
+#include <iostream>
 
 namespace ding
 {
@@ -21,7 +22,7 @@ public:
         {}
     };
 
-    DSignal(const std::string& name, SigFunc&& func): m_name(name), m_func(func)
+    DSignal(const std::string& name, SigFunc&& func): m_name(name), m_func(std::move(func))
     {
     }
     DSignal(const DSignal& other) = default;
@@ -60,11 +61,19 @@ public:
 
     void removeSlot(std::weak_ptr<DObject>&&obj, SigFunc&& slot)
     {
-        m_slots.remove_if([&obj, &slot](const DSlot & item)
-        {
-            return !item.m_obj.owner_before(obj) && !obj.owner_before(item.m_obj)
-                   && item.m_slot == slot;
-        });
+        if (obj.expired())
+            clear();
+        else if (!slot)
+            m_slots.remove_if([&obj](const DSlot & item)
+            {
+                return !item.m_obj.owner_before(obj) && !obj.owner_before(item.m_obj);
+            });
+        else
+            m_slots.remove_if([&obj, &slot](const DSlot & item)
+            {
+                return !item.m_obj.owner_before(obj) && !obj.owner_before(item.m_obj)
+                       && item.m_slot == slot;
+            });
     }
 private:
     std::string m_name;
@@ -90,7 +99,7 @@ DObjectPrivate *DObjectPrivate::move() noexcept
     return new DObjectPrivate(std::move(*this));
 }
 
-std::vector<std::shared_ptr<DSignal>>::const_iterator DObjectPrivate::findSignal(void (DObject::*signal)())const
+std::vector<std::shared_ptr<DSignal>>::const_iterator DObjectPrivate::findSignal(DObject::SigSlotFunc signal)const
 {
     return std::find_if(m_signalList.cbegin(), m_signalList.cend(), [signal](const std::shared_ptr<DSignal>& item)
     {
@@ -116,7 +125,6 @@ D_REGISTER_OBJECT_CLASS(DObject);
 DObject::DObject()
     : DObjectBase(__func__, *new DObjectPrivate())
 {
-    ADD_SIGNAL(DObject, logging);
 }
 
 /*!
@@ -126,7 +134,6 @@ DObject::DObject()
 DObject::DObject(const std::string &type)
     : DObjectBase(type, *new DObjectPrivate())
 {
-    ADD_SIGNAL(DObject, logging);
 }
 
 /*!
@@ -136,7 +143,6 @@ DObject::DObject(const std::string &type)
 DObject::DObject(const std::string &type, DObjectPrivate &dd)
     : DObjectBase(type, dd)
 {
-    ADD_SIGNAL(DObject, logging);
 }
 
 /*!
@@ -177,28 +183,11 @@ DObject *DObject::move() noexcept
     return new DObject(std::move(*this));
 }
 
-bool DObject::disconnect(const std::string& signalname, std::weak_ptr<DObject> obj)
-{
-    D_D(DObject);
-    if(signalname.empty())
-    {
-        d.m_signalList.clear();
-        return true;
-    }
-    auto it = d.findSignal(signalname);
-    if(it == d.m_signalList.cend())
-    {
-        return false;
-    }
-    if(obj.lock())
-        (*it)->removeSlotFromObj(std::move(obj));
-    else
-        (*it)->clear();
-    return true;
-}
-
 bool DObject::addSignalImp(const std::string &name, SigSlotFunc&& signal)
 {
+    if (name.empty() || !signal)
+        return false;
+
     D_D(DObject);
     auto it = d.findSignal(signal);
     if(it != d.m_signalList.cend())
@@ -208,17 +197,28 @@ bool DObject::addSignalImp(const std::string &name, SigSlotFunc&& signal)
 }
 bool DObject::connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot)
 {
+    if (!signal || receiver.expired() || !slot)
+        return false;
+
     D_D(DObject);
     auto it = d.findSignal(signal);
     if(it == d.m_signalList.cend())
         return false;
-
     (*it)->addSlot(std::move(receiver), std::move(slot));
     return true;
 }
 bool DObject::disconnectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot)
 {
     D_D(DObject);
+    if (!signal)
+    {
+        //clear all signals.
+        std::for_each(d.m_signalList.begin(),d.m_signalList.end(),[](const std::shared_ptr<DSignal>& item){
+            item->clear();
+        });
+        return true;
+    }
+
     auto it = d.findSignal(signal);
     if(it == d.m_signalList.cend())
         return false;
@@ -240,6 +240,25 @@ void DObject::emitSignalImp(SigSlotFunc&& signal, std::function<void (const std:
        if(ptr)
            func(ptr,slot.m_slot);
     }
+}
+
+bool DObject::isSignalImp(SigSlotFunc&& signal)const
+{
+    D_D_CONST(DObject);
+    return d.findSignal(signal) != d.m_signalList.cend();
+}
+
+bool DObject::isSignal(std::string name)const
+{
+    D_D_CONST(DObject);
+    return d.findSignal(name) != d.m_signalList.cend();
+}
+
+void testFunc()
+{
+    int sum = 0;
+    for (int i = 0; i < 100; ++i)
+        sum += i;
 }
 
 }

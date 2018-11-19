@@ -44,5 +44,6 @@ protected:
     DParam(const std::string &type) noexcept;
     DParam(const std::string &type, DParamPrivate &dd);
 };
+
 } // namespace ding
 #endif // DPARAM_H
