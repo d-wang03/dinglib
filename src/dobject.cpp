@@ -195,6 +195,7 @@ bool DObject::addSignalImp(const std::string &name, SigSlotFunc&& signal)
     d.m_signalList.emplace_back(std::make_shared<DSignal>(name, std::move(signal)));
     return true;
 }
+
 bool DObject::connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot)
 {
     if (!signal || receiver.expired() || !slot)
@@ -207,6 +208,7 @@ bool DObject::connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver
     (*it)->addSlot(std::move(receiver), std::move(slot));
     return true;
 }
+
 bool DObject::disconnectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot)
 {
     D_D(DObject);
