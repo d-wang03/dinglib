@@ -1,5 +1,5 @@
 #include "dobjecttest.h"
-
+#include "utility/delapsedtimer.h"
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
 
@@ -257,6 +257,23 @@ TEST_F(DObjectTest, SingleSlotEmit)
     EXPECT_TRUE(connect(m_obj1, &TestObject::sig1, m_obj2, &TestObject::slot1));
     m_obj1->emitSignal(&TestObject::sig1, DParam{});
     EXPECT_EQ(1, m_obj2->getSlot1Count());
+}
+
+TEST_F(DObjectTest, SlotEmitTime)
+{
+    EXPECT_TRUE(connect(m_obj1, &TestObject::sig1, m_obj2, &TestObject::slot1));
+    int i = 0;
+    int64_t sum = 0;
+    DElapsedTimer timer;
+    for(int j = 0; j < 10; ++j)
+    {
+    timer.reset();
+    for (i=0; i < 1000000; ++i)
+        m_obj1->emitSignal(&TestObject::sig1, DParam{});
+    auto t = timer.elapsed<std::chrono::microseconds>();
+    sum+=t;
+    std::cout << m_obj2->getSlot1Count() << " time signal emit cost " << t << " microseconds. average time "<< sum/(j+1) << std::endl;
+    }
 }
 
 TEST_F(DObjectTest, ErrSigEmit)

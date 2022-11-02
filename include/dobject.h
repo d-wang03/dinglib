@@ -5,6 +5,7 @@
 #include "dglobal.h"
 #include "dlogmsg.h"
 #include <iostream>
+#include <functional>
 
 namespace ding
 {
@@ -145,7 +146,7 @@ template <typename T, typename... Args, typename=std::enable_if_t<std::is_base_o
 inline auto makeObject(Args &&... args)
 {
     auto ret = std::make_shared<T>(std::forward<Args>(args)...);
-    ret->addSignals();
+    // ret->addSignals();
     return ret;
 }
 

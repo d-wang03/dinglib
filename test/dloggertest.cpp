@@ -14,7 +14,7 @@ TEST(TLoggerTest, messagesBeforeStart)
     auto logger = makeObject<DLogger>("TLoggerTest");
     logger->setDefaultProcessor([&buffer](const DLogMsg &msg) { buffer.emplace_back(msg.getContent()); });
     auto testObj = makeObject<TestObject>();
-    EXPECT_TRUE(testObj->isSignal(&TestObject::logging));
+    // EXPECT_TRUE(testObj->isSignal(&TestObject::logging));
     EXPECT_TRUE(testObj->connect(&TestObject::logging, logger, &DLogger::input));
     testObj->loggingI("The first message.");
     testObj->loggingI("The second message.");

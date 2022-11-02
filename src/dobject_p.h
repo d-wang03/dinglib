@@ -3,6 +3,10 @@
 
 #include "dobject.h"
 #include <vector>
+#include <memory>
+#include <map>
+#include <list>
+#include <algorithm>
 
 namespace ding
 {
@@ -20,12 +24,12 @@ public:
     virtual DObjectPrivate *clone() const override;
     virtual DObjectPrivate *move() noexcept override;
 
-    std::vector<std::shared_ptr<DSignal>>::const_iterator
-                                       findSignal(void (DObject::*signal)())const;
-    std::vector<std::shared_ptr<DSignal>>::const_iterator
-                                       findSignal(std::string signal)const;
+    // auto findSignal(void (DObject::*signal)())const;                   
+    // auto findSignal(std::string signal)const;
 
     std::vector<std::shared_ptr<DSignal>> m_signalList;
+    // std::unordered_map<void*, std::shared_ptr<DSignal>> m_signals;
+
 };
 
 } // namespace ding
