@@ -11,10 +11,11 @@ namespace ding
 // Class DObjectPrivate
 DObjectPrivate::DObjectPrivate(){}
 DObjectPrivate::DObjectPrivate(const DObjectPrivate &) = default;
-DObjectPrivate &DObjectPrivate::operator=(const DObjectPrivate &) = default;
 DObjectPrivate::DObjectPrivate(DObjectPrivate &&) noexcept = default;
-DObjectPrivate &DObjectPrivate::operator=(DObjectPrivate &&) = default;
-DObjectPrivate::~DObjectPrivate() = default;
+DObjectPrivate::~DObjectPrivate()
+{
+    // clearSignal();
+}
 
 DObjectPrivate *DObjectPrivate::clone() const
 {
@@ -79,6 +80,7 @@ DObject &DObject::operator=(DObject &&) = default;
     Destroys a DObject instance.
  */
 DObject::~DObject() = default;
+
 /*!
     Returns \c DObject* to the clone of this object.
  */
@@ -150,7 +152,7 @@ void DObject::emitSignalImp(SigSlotFunc&& signal, std::function<void (const std:
         return;
     for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
     {
-        auto slot = found->getSlots()[i];
+        auto slot = found->m_slots[i];
         auto ptr = slot.m_obj.lock();
         if(ptr)
             func(ptr,slot.m_slot);
@@ -167,13 +169,6 @@ bool DObject::isSignal(std::string name)const
 {
     D_D_CONST(DObject);
     return d.exists(name.c_str());
-}
-
-void testFunc()
-{
-    int sum = 0;
-    for (int i = 0; i < 100; ++i)
-        sum += i;
 }
 
 }

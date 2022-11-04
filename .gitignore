@@ -52,6 +52,7 @@ bin/
 build/
 node_modules/
 build*/
+coverage/
 
 #auto generated version files
 src/version.h

@@ -265,15 +265,10 @@ TEST_F(DObjectTest, SlotEmitTime)
     int i = 0;
     int64_t sum = 0;
     DElapsedTimer timer;
-    for(int j = 0; j < 10; ++j)
-    {
-    timer.reset();
     for (i=0; i < 1000000; ++i)
         m_obj1->emitSignal(&TestObject::sig1, DParam{});
     auto t = timer.elapsed<std::chrono::microseconds>();
-    sum+=t;
-    std::cout << m_obj2->getSlot1Count() << " time signal emit cost " << t << " microseconds. average time "<< sum/(j+1) << std::endl;
-    }
+    std::cout << m_obj2->getSlot1Count() << " time signal emit cost " << t << " microseconds. " << std::endl;
 }
 
 TEST_F(DObjectTest, ErrSigEmit)
@@ -327,6 +322,27 @@ TEST_F(DObjectTest, AddDuplicateSignal)
     EXPECT_FALSE(m_obj1->addSignal("sig1",&TestObject::sig1));
 }
 
+TEST_F(DObjectTest, AddMaxiumSignals)
+{
+    EXPECT_TRUE(m_obj1->addSignal("sig1",&TestObject::output<1>));
+    EXPECT_TRUE(m_obj1->addSignal("sig2",&TestObject::output<2>));
+    EXPECT_TRUE(m_obj1->addSignal("sig3",&TestObject::output<3>));
+    EXPECT_TRUE(m_obj1->addSignal("sig4",&TestObject::output<4>));
+    EXPECT_TRUE(m_obj1->addSignal("sig5",&TestObject::output<5>));
+    EXPECT_TRUE(m_obj1->addSignal("sig6",&TestObject::output<6>));
+    EXPECT_TRUE(m_obj1->addSignal("sig7",&TestObject::output<7>));
+    EXPECT_TRUE(m_obj1->addSignal("sig8",&TestObject::output<8>));
+    EXPECT_TRUE(m_obj1->addSignal("sig9",&TestObject::output<9>));
+    EXPECT_TRUE(m_obj1->addSignal("sig10",&TestObject::output<10>));
+    EXPECT_TRUE(m_obj1->addSignal("sig11",&TestObject::output<11>));
+    EXPECT_TRUE(m_obj1->addSignal("sig12",&TestObject::output<12>));
+    EXPECT_TRUE(m_obj1->addSignal("sig13",&TestObject::output<13>));
+    EXPECT_FALSE(m_obj1->addSignal("sig14",&TestObject::output<14>));
+    EXPECT_FALSE(m_obj1->addSignal("sig15",&TestObject::output<15>));
+    EXPECT_FALSE(m_obj1->addSignal("sig16",&TestObject::output<16>));
+    EXPECT_FALSE(m_obj1->addSignal("sig17",&TestObject::output<17>));
+}
+
 TEST_F(DObjectTest, GetObjectName)
 {
     EXPECT_STREQ("TestObject", m_obj1->getTypeName().c_str());
@@ -342,4 +358,38 @@ TEST_F(DObjectTest, SetNullObjectName)
 {
     m_obj1->setTypeName(std::string());
     EXPECT_STREQ("TestObject", m_obj1->getTypeName().c_str());
+}
+
+TEST_F(DObjectTest, IsSignal_string)
+{
+    EXPECT_TRUE(m_obj1->isSignal("sig1"));
+    EXPECT_TRUE(m_obj1->isSignal("sig2"));
+    EXPECT_FALSE(m_obj1->isSignal("errSig"));
+    EXPECT_FALSE(m_obj1->isSignal("tempSig"));
+}
+
+TEST_F(DObjectTest, IsSignal_PTR)
+{
+    EXPECT_TRUE(m_obj1->isSignal(&TestObject::sig1));
+    EXPECT_TRUE(m_obj1->isSignal(&TestObject::sig2));
+    EXPECT_FALSE(m_obj1->isSignal(&TestObject::errSig));
+    EXPECT_FALSE(m_obj1->isSignal(&TestObject::tempSig));
+}
+
+TEST_F(DObjectTest, copy_ctor)
+{
+    TestObject obj = *m_obj1;
+    EXPECT_TRUE(obj.isSignal(&TestObject::sig1));
+    EXPECT_TRUE(obj.isSignal(&TestObject::sig2));
+    EXPECT_TRUE(m_obj1->isSignal(&TestObject::sig1));
+    EXPECT_TRUE(m_obj1->isSignal(&TestObject::sig2));
+}
+
+TEST_F(DObjectTest, move_ctor)
+{
+    TestObject obj = std::move(*m_obj1);
+    EXPECT_TRUE(obj.isSignal(&TestObject::sig1));
+    EXPECT_TRUE(obj.isSignal(&TestObject::sig2));
+    EXPECT_FALSE(m_obj1->isSignal(&TestObject::sig1));
+    EXPECT_FALSE(m_obj1->isSignal(&TestObject::sig2));
 }

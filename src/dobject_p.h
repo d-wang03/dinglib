@@ -3,26 +3,22 @@
 
 #include "dobject.h"
 #include <string.h>
-#include <vector>
 #include <memory>
-#include <map>
-#include <list>
-#include <algorithm>
 
 namespace ding
 {
-// class DSignal;
+// struct DSignal;
 #define MAX_SIGNAL_NUM 16U
 #define MAX_SLOT_PER_SIGNAL_NUM 5U
-class DSignal
+struct DSignal
 {
-public:
     using SigFunc = void (DObject::*)();
     struct DSlot
     {
         std::weak_ptr<DObject> m_obj;
         SigFunc m_slot;
         DSlot(): m_slot(nullptr){}
+        ~DSlot() = default;
         void set(std::weak_ptr<DObject>&&obj, SigFunc&& slot)
         {
             m_obj = std::move(obj);
@@ -40,25 +36,44 @@ public:
     };
 
     DSignal():m_name(nullptr), m_func(nullptr){}
-    void set(const char *name, SigFunc&& func)
+    DSignal(const DSignal &other)
     {
-        m_name = strdup(name);
-        m_func = std::move(func);
+        if(other.m_name)
+            m_name = strdup(other.m_name);
+        if (other.m_func)
+        {
+            m_func = other.m_func;
+            for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
+                m_slots[i] = other.m_slots[i];
+        }
     }
-    DSignal(const DSignal& other) = default;
-    DSignal& operator=(const DSignal& other) = default;
-    DSignal(DSignal&& other)noexcept = default;
-    DSignal& operator=(DSignal&& other) = default;
-    ~DSignal() = default;
+    DSignal(DSignal &&other) noexcept
+    {
+        if(other.m_name)
+        {
+            m_name = other.m_name;
+            other.m_name = nullptr;
+        }
+        if (other.m_func)
+        {
+            m_func = other.m_func;
+            other.m_func = nullptr;
+            for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
+                m_slots[i] = std::move(other.m_slots[i]);
+        }
 
-    void clear()
+    }
+    ~DSignal()
     {
         char* tmp = const_cast<char*>(m_name);
         if(tmp)
             free(tmp);
-        m_name = nullptr;
-        m_func = nullptr;
-        removeSlot();
+    }
+
+    void set(const char *name, SigFunc&& func)
+    {
+        m_name = strdup(name);
+        m_func = std::move(func);
     }
 
     bool empty()const
@@ -100,16 +115,6 @@ public:
         }
     }
 
-    const char *getName()const
-    {
-        return m_name;
-    }
-    SigFunc getFunc()const
-    {
-        return m_func;
-    }
-
-    const DSlot* getSlots()const {return m_slots;}
     void addSlot(std::weak_ptr<DObject>&& obj, SigFunc&& slot)
     {
         for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
@@ -122,7 +127,6 @@ public:
         }
     }
 
-private:
     const char *m_name;
     SigFunc m_func;
     DSlot m_slots[MAX_SLOT_PER_SIGNAL_NUM];
@@ -133,12 +137,10 @@ public:
     DECLARE_PUBLIC(DObject)
     DObjectPrivate();
     DObjectPrivate(const DObjectPrivate &other);
-    DObjectPrivate &operator=(const DObjectPrivate &rhs);
     DObjectPrivate(DObjectPrivate &&other) noexcept;
-    DObjectPrivate &operator=(DObjectPrivate &&rhs);
-    virtual ~DObjectPrivate() override;
-    virtual DObjectPrivate *clone() const override;
-    virtual DObjectPrivate *move() noexcept override;
+    ~DObjectPrivate() override;
+    DObjectPrivate *clone() const override;
+    DObjectPrivate *move() noexcept override;
 
     DSignal m_signals[MAX_SIGNAL_NUM];
  
@@ -146,17 +148,7 @@ public:
     {
         for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
         {
-            if (m_signals[i].getFunc() == signal)
-                return &m_signals[i];
-        }
-        return nullptr;
-    }
-
-    DSignal* find(const char *signal)
-    {
-        for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
-        {
-            if (!strcmp(m_signals[i].getName(), signal))
+            if (m_signals[i].m_func == signal)
                 return &m_signals[i];
         }
         return nullptr;
@@ -166,7 +158,7 @@ public:
     {
         for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
         {
-            if (m_signals[i].getFunc() == signal)
+            if (m_signals[i].m_func == signal)
                 return true;
         }
         return false;
@@ -176,7 +168,7 @@ public:
     {
         for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
         {
-            auto name = m_signals[i].getName();
+            auto name = m_signals[i].m_name;
             if (name && !strcmp(name, signal))
                 return true;
         }
@@ -197,13 +189,6 @@ public:
             }
         }
         return false;
-    }
-    void clearSignal()
-    {
-        for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
-        {
-            m_signals[i].clear();
-        }
     }
 };
 

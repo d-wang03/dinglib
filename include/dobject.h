@@ -13,7 +13,6 @@ namespace ding
 class DObjectPrivate;
 class DObject : public DObjectBase
 {
-    SIGNAL(DObject,first)
     SIGNAL(DObject,logging)
     DECLARE_PRIVATE(DObject)
 public:
@@ -177,8 +176,6 @@ inline bool disconnect(std::weak_ptr<DObject>&& sender, void (T::*signal)(Args..
         return false;
     return sender.lock()->disconnect(signal,std::move(receiver),slot);
 }
-
-void testFunc();
 
 }
 

@@ -30,7 +30,18 @@ public:
         ADD_SIGNAL(TestObject, sig1);
         ADD_SIGNAL(TestObject, sig2);
     }
-    virtual ~TestObject()override = default;
+    ~TestObject()override = default;
+    TestObject(const TestObject&) = default;
+    TestObject(TestObject && rhs)noexcept : ding::DObject(std::move(rhs))
+    {
+        m_nSlot1Count = rhs.m_nSlot1Count;
+        rhs.m_nSlot1Count = 0;
+        m_nSlot2Count = rhs.m_nSlot2Count;
+        rhs.m_nSlot2Count = 0;
+        m_bDetailInfo = rhs.m_bDetailInfo;
+        rhs.m_bDetailInfo = false;
+        m_signals = std::move(rhs.m_signals);
+    }
     void slot1(DParam &param) { ++m_nSlot1Count; }
 
     void slot2(DParam &param) { ++m_nSlot2Count; }
@@ -71,6 +82,11 @@ public:
     {
         m_nSlot1Count = 0;
         m_nSlot2Count = 0;
+    }
+    template <uint32_t Index>
+    void output(DParam& param)
+    {
+        emitSignal(&TestObject::output<Index>, param);
     }
 };
 
