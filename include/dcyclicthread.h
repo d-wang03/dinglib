@@ -23,8 +23,8 @@ public:
     std::shared_future<int> getFuture();
 
 protected:
-    DCyclicThread(const std::string &type) noexcept;
-    DCyclicThread(const std::string &type, DCyclicThreadPrivate &dd);
+    DCyclicThread(const char *type) noexcept;
+    DCyclicThread(const char *type, DCyclicThreadPrivate &dd);
 
     // additional stop steps
     virtual void additionalStopSteps() = 0;

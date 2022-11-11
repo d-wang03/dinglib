@@ -42,12 +42,12 @@ DCyclicThreadPrivate::DCyclicThreadPrivate()
 DCyclicThreadPrivate::~DCyclicThreadPrivate() = default;
 
 // class TCyclicThread
-DCyclicThread::DCyclicThread(const std::string &type) noexcept
+DCyclicThread::DCyclicThread(const char *type) noexcept
     : DObject(type, *new DCyclicThreadPrivate)
 {
 }
 
-DCyclicThread::DCyclicThread(const std::string &type, DCyclicThreadPrivate &dd)
+DCyclicThread::DCyclicThread(const char *type, DCyclicThreadPrivate &dd)
     : DObject(type, dd)
 {
 }

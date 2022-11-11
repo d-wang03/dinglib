@@ -49,10 +49,27 @@ struct DSignal
     }
     DSignal(DSignal &&other) noexcept
     {
+        move(std::move(other));
+    }
+    // DSignal& operator=(DSignal &&other)
+    // {
+    //     move(std::move(other));
+    //     return *this;
+    // }
+    ~DSignal()
+    {
+        char* tmp = const_cast<char*>(m_name);
+        if(tmp)
+            free(tmp);
+    }
+
+    void move(DSignal &&other)noexcept
+    {
         if(other.m_name)
         {
             m_name = other.m_name;
             other.m_name = nullptr;
+            // printf("move signal %s\n", m_name);
         }
         if (other.m_func)
         {
@@ -61,15 +78,7 @@ struct DSignal
             for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
                 m_slots[i] = std::move(other.m_slots[i]);
         }
-
     }
-    ~DSignal()
-    {
-        char* tmp = const_cast<char*>(m_name);
-        if(tmp)
-            free(tmp);
-    }
-
     void set(const char *name, SigFunc&& func)
     {
         m_name = strdup(name);

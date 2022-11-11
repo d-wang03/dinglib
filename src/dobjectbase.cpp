@@ -1,4 +1,5 @@
 #include "dobjectbase.h"
+#include <cstring>
 
 namespace ding
 {
@@ -77,12 +78,31 @@ namespace ding
     \sa DObjectFactory, D_REGISTER_OBJECT_CLASS(), CREATE_OBJECT_PTR()
 */
 
+// Class DObjectData
+DObjectData::DObjectData() : q_ptr(nullptr), m_typename(nullptr)
+{}
+DObjectData::~DObjectData()
+{
+    if (m_typename)
+        free(m_typename);
+}
+DObjectData::DObjectData(const DObjectData &other) : q_ptr(nullptr), m_typename(nullptr)
+{
+    if (other.m_typename)
+        m_typename = strdup(other.m_typename);
+}
+DObjectData::DObjectData(DObjectData &&other) noexcept : q_ptr(nullptr)
+{
+    m_typename = other.m_typename;
+    other.m_typename = nullptr;
+}
+
 // Class DObjectBase
 /*!
     Ctor with type \a name and implementation \a dd.
     It is only used for derived classes.
  */
-DObjectBase::DObjectBase(const std::string &name, DObjectData &dd)
+DObjectBase::DObjectBase(const char *name, DObjectData &dd)
     : d_ptr(std::unique_ptr<DObjectData>(&dd))
 {
     d_ptr->q_ptr = this;
@@ -94,6 +114,8 @@ DObjectBase::DObjectBase(const std::string &name, DObjectData &dd)
 DObjectBase::DObjectBase(const DObjectBase &other)
     : d_ptr(std::unique_ptr<DObjectData>(other.d_ptr->clone()))
 {
+    if(d_ptr)
+        d_ptr->q_ptr = this;
 }
 /*!
     Copy assignment operator for \a rhs.
@@ -111,6 +133,8 @@ DObjectBase &DObjectBase::operator=(const DObjectBase &rhs)
 DObjectBase::DObjectBase(DObjectBase &&other) noexcept
     : d_ptr(other.d_ptr->move())
 {
+    if (d_ptr)
+        d_ptr->q_ptr = this;
 }
 
 /*!
@@ -119,6 +143,7 @@ DObjectBase::DObjectBase(DObjectBase &&other) noexcept
  */
 DObjectBase &DObjectBase::operator=(DObjectBase &&rhs)
 {
+    //not just move d_ptr to avoid null pointer dereference.
     d_ptr = std::unique_ptr<DObjectData>(rhs.d_ptr->move());
     return *this;
 }
@@ -127,20 +152,24 @@ DObjectBase &DObjectBase::operator=(DObjectBase &&rhs)
     Sets \a type of the object.
     \sa getTypeName()
  */
-void DObjectBase::setTypeName(const std::string &type)
+void DObjectBase::setTypeName(const char *type)
 {
-    if (!d_ptr)
-        return;
-    d_ptr->m_typename = type.empty() ? d_ptr->m_typename : type;
+    if (d_ptr && type)
+        d_ptr->m_typename = strdup(type);
+    if (d_ptr && !type)
+    {
+        free(d_ptr->m_typename);
+        d_ptr->m_typename = nullptr;
+    }
 }
 
 /*!
     Returns \c type of the object.
     \sa setTypeName()
  */
-std::string DObjectBase::getTypeName() const
+const char * DObjectBase::getTypeName() const
 {
-    return d_ptr ? d_ptr->m_typename : "";
+    return d_ptr ? d_ptr->m_typename : nullptr;
 }
 
 /*!

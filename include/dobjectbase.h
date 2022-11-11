@@ -11,16 +11,14 @@ class DObjectBase;
 class DObjectData
 {
 public:
-    DObjectData() = default;
-    virtual ~DObjectData() = default;
-    DObjectData(const DObjectData &other) = default;
-    DObjectData &operator=(const DObjectData &rhs) = default;
-    DObjectData(DObjectData &&other) noexcept = default;
-    DObjectData &operator=(DObjectData &&rhs) = default;
+    DObjectData();
+    virtual ~DObjectData();
+    DObjectData(const DObjectData &other);
+    DObjectData(DObjectData &&other) noexcept;
     virtual DObjectData *clone() const = 0;
     virtual DObjectData *move() noexcept = 0;
     DObjectBase *q_ptr;
-    std::string m_typename;
+    char * m_typename;
 };
 
 class DObjectBase
@@ -33,8 +31,8 @@ public:
     // move
     virtual DObjectBase *move() noexcept = 0;
     // type name
-    void setTypeName(const std::string &type);
-    std::string getTypeName() const;
+    void setTypeName(const char *type);
+    const char * getTypeName() const;
     // type checker
     template <typename T>
     bool is_type() const
@@ -49,7 +47,7 @@ public:
 
 protected:
     // ctor
-    DObjectBase(const std::string &name, DObjectData &dd);
+    DObjectBase(const char *name, DObjectData &dd);
     // copy ctor
     DObjectBase(const DObjectBase &other);
     DObjectBase &operator=(const DObjectBase &rhs);

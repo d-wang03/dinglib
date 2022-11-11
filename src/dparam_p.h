@@ -9,18 +9,18 @@ class DParamPrivate : public DObjectData
 {
 public:
     DECLARE_PUBLIC(DParam)
-    DParamPrivate() = default;
-    virtual ~DParamPrivate() override = default;
-    DParamPrivate(const DParamPrivate &other) = default;
-    DParamPrivate &operator=(const DParamPrivate &rhs) = default;
-    DParamPrivate(DParamPrivate &&other) noexcept = default;
-    DParamPrivate &operator=(DParamPrivate &&rhs) = default;
+    DParamPrivate();
+    virtual ~DParamPrivate() override;
+    DParamPrivate(const DParamPrivate &other);
+    DParamPrivate &operator=(const DParamPrivate &rhs);
+    DParamPrivate(DParamPrivate &&other) noexcept;
+    DParamPrivate &operator=(DParamPrivate &&rhs);
     virtual DParamPrivate *clone() const override;
     virtual DParamPrivate *move() noexcept override;
 
 private:
-    std::string m_triggerName;
-    std::string m_triggerSignal;
+    char *m_triggerName;
+    char *m_triggerSignal;
 };
 
 } // namespace ding

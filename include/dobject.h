@@ -131,8 +131,8 @@ public:
     }
 
 protected:
-    DObject(const std::string &type);
-    DObject(const std::string &type, DObjectPrivate &dd);
+    DObject(const char *type);
+    DObject(const char *type, DObjectPrivate &dd);
 private:
     bool addSignalImp(const std::string &name, SigSlotFunc&& signal);
     bool connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot);

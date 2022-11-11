@@ -11,10 +11,14 @@ namespace ding
 // Class DObjectPrivate
 DObjectPrivate::DObjectPrivate(){}
 DObjectPrivate::DObjectPrivate(const DObjectPrivate &) = default;
-DObjectPrivate::DObjectPrivate(DObjectPrivate &&) noexcept = default;
+DObjectPrivate::DObjectPrivate(DObjectPrivate &&other) noexcept = default;
+// DObjectPrivate::DObjectPrivate(DObjectPrivate &&other) noexcept : DObjectData(std::move(other))
+// {
+//     for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
+//         m_signals[i] = std::move(other.m_signals[i]);
+// }
 DObjectPrivate::~DObjectPrivate()
 {
-    // clearSignal();
 }
 
 DObjectPrivate *DObjectPrivate::clone() const
@@ -42,7 +46,7 @@ DObject::DObject()
     Constructs a DObject instance with \a type.
     \note It is recommended to use this constructor in derived classes.
  */
-DObject::DObject(const std::string &type)
+DObject::DObject(const char *type)
     : DObject(type, *new DObjectPrivate())
 {
 }
@@ -51,7 +55,7 @@ DObject::DObject(const std::string &type)
     Constructs a DObject instance with \a type and the private instance \a dd.
     \note It is used for Pimpl Idiom in derived classes.
  */
-DObject::DObject(const std::string &type, DObjectPrivate &dd)
+DObject::DObject(const char *type, DObjectPrivate &dd)
     : DObjectBase(type, dd)
 {
     addSignal("logging",&DObject::logging);

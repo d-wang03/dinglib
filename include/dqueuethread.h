@@ -31,11 +31,11 @@ public:
     }
 
 protected:
-    DQueueThread(const std::string &type)
+    DQueueThread(const char *type)
         : DCyclicThread(type)
     {
     }
-    DQueueThread(const std::string &type, DCyclicThreadPrivate &dd)
+    DQueueThread(const char *type, DCyclicThreadPrivate &dd)
         : DCyclicThread(type, dd)
     {
     }

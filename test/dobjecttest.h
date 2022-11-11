@@ -90,30 +90,17 @@ public:
     }
 };
 
-#define CHECK_SIGNAL(checker, exp_obj, exp_sig)                                                                        \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        bool ret = checker->empty();                                                                                   \
-        EXPECT_FALSE(ret);                                                                                             \
-        if (!ret)                                                                                                      \
-        {                                                                                                              \
-            DParam param = checker->getFirstSignal();                                                                  \
-            EXPECT_STREQ(param.getTriggerName().c_str(), exp_obj.c_str());                                             \
-            EXPECT_STREQ(param.getTriggerSignal().c_str(), exp_sig.c_str());                                           \
-        }                                                                                                              \
-    } while (0)
-
-inline void checkSignal(const std::shared_ptr<TestObject> &checker, const std::string &exp_obj,
-                        const std::string &exp_sig)
-{
-    bool ret = checker->empty();
-    EXPECT_FALSE(ret);
-    if (ret)
-        return;
-    DParam param = checker->getFirstSignal();
-    EXPECT_STREQ(param.getTriggerName().c_str(), exp_obj.c_str());
-    EXPECT_STREQ(param.getTriggerSignal().c_str(), exp_sig.c_str());
-}
+// inline void checkSignal(const std::shared_ptr<TestObject> &checker, const std::string &exp_obj,
+//                         const std::string &exp_sig)
+// {
+//     bool ret = checker->empty();
+//     EXPECT_FALSE(ret);
+//     if (ret)
+//         return;
+//     DParam param = checker->getFirstSignal();
+//     EXPECT_STREQ(param.getTriggerName(), exp_obj.c_str());
+//     EXPECT_STREQ(param.getTriggerSignal(), exp_sig.c_str());
+// }
 
 // The fixture for testing class TObjectTest.
 class DObjectTest : public ::testing::Test

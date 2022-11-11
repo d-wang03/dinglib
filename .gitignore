@@ -43,6 +43,7 @@ package-lock.json
 # Folders
 .externalToolBuilders/
 .settings/
+.vscode/
 arm/
 export/
 tools/

@@ -72,7 +72,7 @@ DLogger::DLogger(const std::string &modualName, DLogMsg::MsgLevel outputLevel)
     This constructor is used for dynamic library compliance.
     \note It is NOT recommended to use this constructor.
  */
-DLogger::DLogger(const std::string &type, DCyclicThreadPrivate &dd)
+DLogger::DLogger(const char *type, DCyclicThreadPrivate &dd)
     : DQueueThread<DLogMsg>(type, dd)
 {
 }

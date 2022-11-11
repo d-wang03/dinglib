@@ -8,7 +8,7 @@ using namespace testing;
 TEST_F(DObjectTest, Ctor)
 {
     auto obj = makeObject<DObject>();
-    EXPECT_STREQ("DObject", obj->getTypeName().c_str());
+    EXPECT_STREQ("DObject", obj->getTypeName());
 }
 
 TEST_F(DObjectTest, AllNullConnect)
@@ -345,19 +345,19 @@ TEST_F(DObjectTest, AddMaxiumSignals)
 
 TEST_F(DObjectTest, GetObjectName)
 {
-    EXPECT_STREQ("TestObject", m_obj1->getTypeName().c_str());
+    EXPECT_STREQ("TestObject", m_obj1->getTypeName());
 }
 
 TEST_F(DObjectTest, SetObjectName)
 {
     m_obj1->setTypeName("ChangeName");
-    EXPECT_STREQ("ChangeName", m_obj1->getTypeName().c_str());
+    EXPECT_STREQ("ChangeName", m_obj1->getTypeName());
 }
 
 TEST_F(DObjectTest, SetNullObjectName)
 {
-    m_obj1->setTypeName(std::string());
-    EXPECT_STREQ("TestObject", m_obj1->getTypeName().c_str());
+    m_obj1->setTypeName(nullptr);
+    EXPECT_FALSE(m_obj1->getTypeName());
 }
 
 TEST_F(DObjectTest, IsSignal_string)
@@ -385,6 +385,43 @@ TEST_F(DObjectTest, copy_ctor)
     EXPECT_TRUE(m_obj1->isSignal(&TestObject::sig2));
 }
 
+TEST_F(DObjectTest, dobject_copy_move)
+{
+    DObject obj1;
+    obj1.setTypeName("Obj1");
+    DObject obj2 = obj1;
+    EXPECT_STREQ(obj1.getTypeName(),"Obj1");
+    EXPECT_STREQ(obj2.getTypeName(),"Obj1");
+    DObject obj3 = std::move(obj1);
+    EXPECT_FALSE(obj1.getTypeName());
+    EXPECT_STREQ(obj2.getTypeName(), "Obj1");
+    EXPECT_STREQ(obj3.getTypeName(), "Obj1");
+}
+
+TEST_F(DObjectTest, dobject_clone)
+{
+    auto obj1 = makeObject<DObject>();
+    obj1->setTypeName("Obj1");
+    EXPECT_STREQ(obj1->getTypeName(), "Obj1");
+
+    auto obj2 = obj1->clone();
+    EXPECT_STREQ(obj1->getTypeName(), "Obj1");
+    EXPECT_STREQ(obj2->getTypeName(), "Obj1");
+}
+
+TEST_F(DObjectTest, dobject_move)
+{
+    auto obj1 = makeObject<DObject>();
+    obj1->setTypeName("Obj1");
+    EXPECT_STREQ(obj1->getTypeName(), "Obj1");
+
+    auto obj2 = obj1->move();
+    EXPECT_FALSE(obj1->getTypeName());
+    EXPECT_STREQ(obj2->getTypeName(), "Obj1");
+    EXPECT_FALSE(obj1->isSignal("logging"));
+    EXPECT_TRUE(obj2->isSignal("logging"));
+}
+
 TEST_F(DObjectTest, move_ctor)
 {
     TestObject obj = std::move(*m_obj1);
@@ -392,4 +429,38 @@ TEST_F(DObjectTest, move_ctor)
     EXPECT_TRUE(obj.isSignal(&TestObject::sig2));
     EXPECT_FALSE(m_obj1->isSignal(&TestObject::sig1));
     EXPECT_FALSE(m_obj1->isSignal(&TestObject::sig2));
+}
+
+TEST_F(DObjectTest, copy_op)
+{
+    auto obj1 = makeObject<DObject>();
+    obj1->setTypeName("Obj1");
+    EXPECT_STREQ(obj1->getTypeName(), "Obj1");
+
+    auto obj2 = makeObject<DObject>();
+    *obj2 = *obj1;
+    EXPECT_STREQ(obj1->getTypeName(), "Obj1");
+    EXPECT_STREQ(obj2->getTypeName(), "Obj1");
+}
+
+TEST_F(DObjectTest, move_op)
+{
+    auto obj1 = makeObject<DObject>();
+    obj1->setTypeName("Obj1");
+    EXPECT_STREQ(obj1->getTypeName(), "Obj1");
+
+    auto obj2 = makeObject<DObject>();
+    *obj2 = std::move(*obj1);
+    EXPECT_FALSE(obj1->getTypeName());
+    EXPECT_STREQ(obj2->getTypeName(), "Obj1");
+    EXPECT_FALSE(obj1->isSignal("logging"));
+    EXPECT_TRUE(obj2->isSignal("logging"));
+}
+
+TEST_F(DObjectTest, factory)
+{
+    auto obj1 = DObjectFactory::CreateObject<DObject>("DObject");
+    EXPECT_TRUE(obj1);
+    EXPECT_STREQ(obj1->getTypeName(), "DObject");
+    EXPECT_TRUE(obj1->isSignal("logging"));
 }

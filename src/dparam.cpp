@@ -1,6 +1,7 @@
 #include "dparam_p.h"
 #include "dutility.h"
 #include "dobject.h"
+#include <cstring>
 
 namespace ding
 {
@@ -45,6 +46,33 @@ namespace ding
 */
 
 // Class DParamPrivate
+DParamPrivate::DParamPrivate():DObjectData(),m_triggerName(nullptr),m_triggerSignal(nullptr)
+{
+}
+
+DParamPrivate::~DParamPrivate()
+{
+    if (m_triggerName)
+        free(m_triggerName);
+    if (m_triggerSignal)
+        free(m_triggerSignal);
+    m_triggerName = nullptr;
+    m_triggerSignal = nullptr;
+}
+DParamPrivate::DParamPrivate(const DParamPrivate &other):DObjectData(other), m_triggerName(nullptr), m_triggerSignal(nullptr)
+{
+    if (other.m_triggerName)
+        m_triggerName = strdup(other.m_triggerName);
+    if (other.m_triggerSignal)
+        m_triggerSignal = strdup(other.m_triggerSignal);
+}
+DParamPrivate::DParamPrivate(DParamPrivate &&other)noexcept:DObjectData(std::move(other)) 
+{
+    m_triggerName = other.m_triggerName;
+    other.m_triggerName = nullptr;
+    m_triggerSignal = other.m_triggerSignal;
+    other.m_triggerSignal = nullptr;
+}
 DParamPrivate *DParamPrivate::clone() const
 {
     return new DParamPrivate(*this);
@@ -68,7 +96,7 @@ DParam::DParam() noexcept
     Constructs a DParam instance with \a type.
     \note It is recommended to use this constructor.
  */
-DParam::DParam(const std::string &type) noexcept
+DParam::DParam(const char *type) noexcept
     : DObjectBase(type, *new DParamPrivate)
 {
 }
@@ -78,7 +106,7 @@ DParam::DParam(const std::string &type) noexcept
 
     \note This constructor is used for Pimpl Idiom.
  */
-DParam::DParam(const std::string &type, DParamPrivate &dd)
+DParam::DParam(const char *type, DParamPrivate &dd)
     : DObjectBase(type, dd)
 {
 }
@@ -108,7 +136,7 @@ DParam::~DParam() {}
     Returns the \c trigger name.
     If there is no trigger, returns empty std::string.
  */
-std::string DParam::getTriggerName() const
+const char * DParam::getTriggerName() const
 {
     D_D_CONST(DParam);
     return d.m_triggerName;
@@ -118,7 +146,7 @@ std::string DParam::getTriggerName() const
     Returns the \c signal emitted with this parameter.
     If there is no trigger, returns empty std::string.
  */
-std::string DParam::getTriggerSignal() const
+const char * DParam::getTriggerSignal() const
 {
     D_D_CONST(DParam);
     return d.m_triggerSignal;
@@ -129,11 +157,43 @@ std::string DParam::getTriggerSignal() const
     Sets the trigger with \a obj and \a signal.
     \note This function is used internally.
  */
-void DParam::setTrigger(std::string obj, std::string signal)
+void DParam::setTrigger(const char *obj, const char *signal)
 {
     D_D(DParam);
-    d.m_triggerName = std::move(obj);
-    d.m_triggerSignal = std::move(signal);
+    if (!obj)
+    {
+        if (d.m_triggerName)
+            free(d.m_triggerName);
+        d.m_triggerName = nullptr;
+    }
+    else
+    {
+        if (!d.m_triggerName)
+            d.m_triggerName = strdup(obj);
+        else if (strcmp(obj, d.m_triggerName) != 0)
+        {
+            free(d.m_triggerName);
+            d.m_triggerName = strdup(obj);
+        }
+        //else obj is equals to d.m_triggerName. No need to do deep copy.
+    }
+    if (!signal)
+    {
+        if (d.m_triggerSignal)
+            free(d.m_triggerSignal);
+        d.m_triggerSignal = nullptr;
+    }
+    else
+    {
+        if (!d.m_triggerSignal)
+            d.m_triggerSignal = strdup(signal);
+        else if (strcmp(signal, d.m_triggerSignal) != 0)
+        {
+            free(d.m_triggerSignal);
+            d.m_triggerSignal = strdup(signal);
+        }
+        //else obj is equals to d.m_triggerSignal. No need to do deep copy.
+    }
 }
 
 /*!
@@ -167,7 +227,8 @@ DParam *DParam::move() noexcept
  */
 std::string DParam::toString() const
 {
-    return getTypeName();
+    auto type = getTypeName();
+    return type ? std::string(type) : std::string();
 }
 /*!
     Returns \c true if this object equals to \a other.
@@ -176,7 +237,14 @@ std::string DParam::toString() const
  */
 bool DParam::equals(const DParam &other) const
 {
-    return getTypeName() == other.getTypeName();
+    auto type1 = getTypeName();
+    auto type2 = other.getTypeName();
+    if (type1 && type2 && strcmp(type1, type2) == 0)
+        return true;
+    else if (!type1 && !type2)
+        return true;
+    else
+        return false;
 }
 /*!
     Override operator ==.

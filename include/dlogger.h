@@ -51,7 +51,7 @@ public:
 
 protected:
     virtual int processMsg(DLogMsg &msg) override;
-    DLogger(const std::string &type, DCyclicThreadPrivate &dd);
+    DLogger(const char *type, DCyclicThreadPrivate &dd);
 };
 
 } // namespace ding

@@ -15,6 +15,7 @@ class DParam : public DObjectBase
 public:
     // ctor
     DParam() noexcept;
+    DParam(const char *type) noexcept;
     // copy ctor
     DParam(const DParam &other);
     DParam &operator=(const DParam &other);
@@ -36,13 +37,12 @@ public:
     bool operator==(const DParam &rhs) const;
 
     // properties
-    std::string getTriggerName() const;
-    std::string getTriggerSignal() const;
-    void setTrigger(std::string obj, std::string signal);
+    const char * getTriggerName() const;
+    const char * getTriggerSignal() const;
+    void setTrigger(const char *obj, const char *signal);
 
 protected:
-    DParam(const std::string &type) noexcept;
-    DParam(const std::string &type, DParamPrivate &dd);
+    DParam(const char *type, DParamPrivate &dd);
 };
 
 } // namespace ding
