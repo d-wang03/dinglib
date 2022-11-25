@@ -36,7 +36,7 @@ struct DSignal
     };
 
     DSignal():m_name(nullptr), m_func(nullptr){}
-    DSignal(const DSignal &other)
+    DSignal(const DSignal &other) : m_name(nullptr), m_func(nullptr)
     {
         if(other.m_name)
             m_name = strdup(other.m_name);
@@ -47,40 +47,16 @@ struct DSignal
                 m_slots[i] = other.m_slots[i];
         }
     }
-    DSignal(DSignal &&other) noexcept
-    {
-        move(std::move(other));
-    }
-    // DSignal& operator=(DSignal &&other)
-    // {
-    //     move(std::move(other));
-    //     return *this;
-    // }
     ~DSignal()
     {
-        char* tmp = const_cast<char*>(m_name);
-        if(tmp)
-            free(tmp);
+        if(m_name)
+            free(m_name);
     }
 
-    void move(DSignal &&other)noexcept
-    {
-        if(other.m_name)
-        {
-            m_name = other.m_name;
-            other.m_name = nullptr;
-            // printf("move signal %s\n", m_name);
-        }
-        if (other.m_func)
-        {
-            m_func = other.m_func;
-            other.m_func = nullptr;
-            for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
-                m_slots[i] = std::move(other.m_slots[i]);
-        }
-    }
     void set(const char *name, SigFunc&& func)
     {
+        if (m_name)
+            free(m_name);
         m_name = strdup(name);
         m_func = std::move(func);
     }
@@ -136,7 +112,7 @@ struct DSignal
         }
     }
 
-    const char *m_name;
+    char *m_name;
     SigFunc m_func;
     DSlot m_slots[MAX_SLOT_PER_SIGNAL_NUM];
 };
@@ -146,10 +122,10 @@ public:
     DECLARE_PUBLIC(DObject)
     DObjectPrivate();
     DObjectPrivate(const DObjectPrivate &other);
-    DObjectPrivate(DObjectPrivate &&other) noexcept;
+    // DObjectPrivate(DObjectPrivate &&other) noexcept;
     ~DObjectPrivate() override;
     DObjectPrivate *clone() const override;
-    DObjectPrivate *move() noexcept override;
+    // DObjectPrivate *move() noexcept override;
 
     DSignal m_signals[MAX_SIGNAL_NUM];
  

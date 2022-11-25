@@ -14,9 +14,9 @@ public:
     DObjectData();
     virtual ~DObjectData();
     DObjectData(const DObjectData &other);
-    DObjectData(DObjectData &&other) noexcept;
+    // DObjectData(DObjectData &&other) noexcept;
     virtual DObjectData *clone() const = 0;
-    virtual DObjectData *move() noexcept = 0;
+    // virtual DObjectData *move() noexcept = 0;
     DObjectBase *q_ptr;
     char * m_typename;
 };
@@ -25,7 +25,7 @@ class DObjectBase
 {
 public:
     // dtor
-    virtual ~DObjectBase() = default;
+    virtual ~DObjectBase();
     // clone
     virtual DObjectBase *clone() const = 0;
     // move
@@ -55,7 +55,7 @@ protected:
     DObjectBase(DObjectBase &&other) noexcept;
     DObjectBase &operator=(DObjectBase &&rhs);
 
-    std::unique_ptr<DObjectData> d_ptr;
+    DObjectData *d_ptr;
 };
 
 typedef std::shared_ptr<DObjectBase>(*DNewObjectFunc)();

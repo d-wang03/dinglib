@@ -79,9 +79,8 @@ public:
              typename = std::enable_if_t<std::is_base_of<DObject, T>::value>>
     void emitSignal(void(T::*signal)(Args...), Args2 && ... args)
     {
-        emitSignalImp(reinterpret_cast<SigSlotFunc>(signal), [&](const std::shared_ptr<DObject>& obj,SigSlotFunc slot){
+        emitSignalImp(reinterpret_cast<SigSlotFunc>(signal), [&args...](DObject *obj,SigSlotFunc slot){
             auto func = reinterpret_cast<void (DObject::*)(Args...)>(slot);
-            if(obj)
                 obj->call(func, std::forward<Args>(args)...);
         });
     }
@@ -125,11 +124,6 @@ public:
         loggingRVF(DLogMsg(DLogMsg::Error, getTypeName(), format, std::forward<Args>(args)...));
     }
 
-    virtual inline void addSignals()
-    {
-        addSignal("logging",&DObject::logging);
-    }
-
 protected:
     DObject(const char *type);
     DObject(const char *type, DObjectPrivate &dd);
@@ -137,7 +131,7 @@ private:
     bool addSignalImp(const std::string &name, SigSlotFunc&& signal);
     bool connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot);
     bool disconnectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot);
-    void emitSignalImp(SigSlotFunc&& signal, std::function<void (const std::shared_ptr<DObject>&, SigSlotFunc)>&& func);
+    void emitSignalImp(SigSlotFunc&& signal, std::function<void (DObject*, SigSlotFunc)>&& func);
     bool isSignalImp(SigSlotFunc&& signal)const;
 };
 

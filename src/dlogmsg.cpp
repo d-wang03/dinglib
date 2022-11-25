@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iomanip>
 
+using namespace std::chrono_literals;
 namespace ding
 {
 /*!
@@ -43,10 +44,7 @@ public:
     virtual ~DLogMsgPrivate() override = default;
     DLogMsgPrivate(const DLogMsgPrivate &other) = default;
     DLogMsgPrivate &operator=(const DLogMsgPrivate &rhs) = default;
-    DLogMsgPrivate(DLogMsgPrivate &&other) = default;
-    DLogMsgPrivate &operator=(DLogMsgPrivate &&rhs) = default;
     virtual DLogMsgPrivate *clone() const override;
-    virtual DLogMsgPrivate *move() noexcept override;
 
 private:
     DLogMsg::MsgLevel m_level;
@@ -60,11 +58,6 @@ DLogMsgPrivate *DLogMsgPrivate::clone() const
     return new DLogMsgPrivate(*this);
 }
 
-DLogMsgPrivate *DLogMsgPrivate::move() noexcept
-{
-    return new DLogMsgPrivate(std::move(*this));
-}
-
 // class DLogMsg
 /*!
     Constructs a empty DLogMsg with current time as timestamp.
@@ -73,8 +66,8 @@ DLogMsg::DLogMsg()
     : DParam(__func__, *new DLogMsgPrivate)
 {
     D_D(DLogMsg);
-    d.m_level = Debug;
-    d.m_timestamp = std::chrono::steady_clock::now().time_since_epoch();
+    d->m_level = Debug;
+    d->m_timestamp = std::chrono::steady_clock::now().time_since_epoch();
 }
 
 /*!
@@ -84,9 +77,9 @@ DLogMsg::DLogMsg(MsgLevel level, const std::string &module, const std::string &c
     : DLogMsg()
 {
     D_D(DLogMsg);
-    d.m_level = level;
-    d.m_module = module;
-    d.m_content = content;
+    d->m_level = level;
+    d->m_module = module;
+    d->m_content = content;
 }
 
 /*!
@@ -142,11 +135,13 @@ DLogMsg *DLogMsg::move() noexcept
 std::string DLogMsg::toString() const
 {
     D_D_CONST(DLogMsg);
+    if (!d)
+        return std::string();
     const char *levelName[] = { "[Debug]", "[Info]", "[Warning]", "[Error]" };
     std::stringstream ss;
-    ss << "[" << std::chrono::duration_cast<std::chrono::seconds>(d.m_timestamp).count() << "."
-       << std::chrono::duration_cast<std::chrono::microseconds>(d.m_timestamp).count() % 1000000 << "]"
-       << levelName[d.m_level] << "[" << d.m_module << "]" << d.m_content;
+    ss << "[" << std::chrono::duration_cast<std::chrono::seconds>(d->m_timestamp).count() << "."
+       << std::chrono::duration_cast<std::chrono::microseconds>(d->m_timestamp).count() % 1000000 << "]"
+       << levelName[d->m_level] << "[" << d->m_module << "]" << d->m_content;
     return ss.str();
 }
 
@@ -158,10 +153,13 @@ bool DLogMsg::equals(const DParam &other) const
     if (DParam::equals(other))
     {
         auto rhs = static_cast<const DLogMsg &>(other);
-        return d_func().m_level == rhs.d_func().m_level
-                && d_func().m_timestamp == rhs.d_func().m_timestamp
-                && d_func().m_module == rhs.d_func().m_module
-               && d_func().m_content == rhs.d_func().m_content;
+        auto d = d_func();
+        auto d2 = rhs.d_func();
+        if (d && d2 && d->m_level == d2->m_level)
+            //   && d->m_timestamp == d2->m_timestamp
+            //   && d->m_module == d2->m_module
+            //   && d->m_content == d2->m_content)
+        return true;
     }
 
     return false;
@@ -173,7 +171,7 @@ bool DLogMsg::equals(const DParam &other) const
 DLogMsg::MsgLevel DLogMsg::getLevel() const
 {
     D_D_CONST(DLogMsg);
-    return d.m_level;
+    return d ? d->m_level : Debug;
 }
 
 /*!
@@ -182,7 +180,7 @@ DLogMsg::MsgLevel DLogMsg::getLevel() const
 std::string DLogMsg::getModule()const
 {
     D_D_CONST(DLogMsg);
-    return d.m_module;
+    return d ? d->m_module : std::string();
 }
 
 /*!
@@ -191,7 +189,7 @@ std::string DLogMsg::getModule()const
 std::string DLogMsg::getContent() const
 {
     D_D_CONST(DLogMsg);
-    return d.m_content;
+    return d ? d->m_content : std::string();
 }
 
 /*!
@@ -200,7 +198,7 @@ std::string DLogMsg::getContent() const
 std::chrono::steady_clock::duration DLogMsg::getTimestamp() const
 {
     D_D_CONST(DLogMsg);
-    return d.m_timestamp;
+    return d ? d->m_timestamp : 0ms;
 }
 
 /*!
@@ -213,10 +211,10 @@ std::chrono::steady_clock::duration DLogMsg::getTimestamp() const
 //        return false;
 
 //    D_D_CONST(DLogMsg);
-//    data["Level"] = d.m_level;
-//    data["Content"] = d.m_content;
-//    data["TimeStamp"]["sec"] = std::chrono::duration_cast<std::chrono::seconds>(d.m_timestamp).count();
-//    data["TimeStamp"]["nsec"] = std::chrono::duration_cast<std::chrono::microseconds>(d.m_timestamp).count() % 1000000;
+//    data["Level"] = d->m_level;
+//    data["Content"] = d->m_content;
+//    data["TimeStamp"]["sec"] = std::chrono::duration_cast<std::chrono::seconds>(d->m_timestamp).count();
+//    data["TimeStamp"]["nsec"] = std::chrono::duration_cast<std::chrono::microseconds>(d->m_timestamp).count() % 1000000;
 
 //    return true;
 //}
@@ -237,9 +235,9 @@ std::chrono::steady_clock::duration DLogMsg::getTimestamp() const
 //        return false;
 //    long tv_sec = json_obj_get(data["TimeStamp"], "sec", 0);
 //    long tv_nsec = json_obj_get(data["TimeStamp"], "nsec", 0);
-//    d.m_timestamp = std::chrono::seconds(tv_sec) + std::chrono::microseconds(tv_nsec);
-//    d.m_level = static_cast<DLogMsg::MsgLevel>(json_obj_get(data, "Level", 0));
-//    d.m_content = json_obj_get(data, "Content", "");
+//    d->m_timestamp = std::chrono::seconds(tv_sec) + std::chrono::microseconds(tv_nsec);
+//    d->m_level = static_cast<DLogMsg::MsgLevel>(json_obj_get(data, "Level", 0));
+//    d->m_content = json_obj_get(data, "Content", "");
 
 //    return ret;
 //}

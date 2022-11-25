@@ -2,18 +2,25 @@
 #define DSYNCQUEUE_H
 
 #include <deque>
-#include <mutex>
-#include <condition_variable>
 #include "dparam.h"
+#include "semaphore.h"
 
 namespace ding
 {
-template <typename TMsg, typename = std::enable_if_t<std::is_base_of<DParam, std::decay_t<TMsg>>::value>>
+template <typename Msg, typename = std::enable_if_t<std::is_base_of<DParam, std::decay_t<Msg>>::value>>
 class DSyncQueue
 {
 public:
-    DSyncQueue() = default;
-    ~DSyncQueue() = default;
+    DSyncQueue()
+    {
+        sem_init(&m_semMsg, 0, 0);
+        sem_init(&m_semMutex, 0, 1);
+    }
+    ~DSyncQueue()
+    {
+        sem_destroy(&m_semMsg);
+        sem_destroy(&m_semMutex);
+    }
     DSyncQueue(const DSyncQueue &) = default;
     DSyncQueue &operator=(const DSyncQueue &) = default;
     DSyncQueue(DSyncQueue && other) noexcept
@@ -22,69 +29,82 @@ public:
     }
     DSyncQueue &operator=(DSyncQueue &&) = default;
 
-    template <typename T, typename = std::enable_if_t<std::is_same<TMsg, std::decay_t<T>>::value>>
+    template <typename T, typename = std::enable_if_t<std::is_same<Msg, std::decay_t<T>>::value>>
     void push_back(T &&item)
     {
-        std::lock_guard<std::mutex> locker(m_mutex);
+        sem_wait(&m_semMutex);
         m_queue.emplace_back(item.move());
-        m_notEmpty.notify_one();
+        sem_post(&m_semMutex);
+        sem_post(&m_semMsg);
     }
 
-    template <typename T, typename = std::enable_if_t<std::is_same<TMsg, std::decay_t<T>>::value>>
+    template <typename T, typename = std::enable_if_t<std::is_same<Msg, std::decay_t<T>>::value>>
     void push_front(T &&item)
     {
-        std::lock_guard<std::mutex> locker(m_mutex);
+        sem_wait(&m_semMutex);
         m_queue.emplace_front(item.move());
-        m_notEmpty.notify_one();
+        sem_post(&m_semMutex);
+        sem_post(&m_semMsg);
     }
 
-    std::shared_ptr<TMsg> pop_front()
+    Msg* pop_front()
     {
-        std::unique_lock<std::mutex> locker(m_mutex);
-        m_notEmpty.wait(locker, [this] { return !m_queue.empty(); });
+        sem_wait(&m_semMsg);
+        sem_wait(&m_semMutex);
         auto ret = m_queue.front();
         m_queue.pop_front();
+        sem_post(&m_semMutex);
         return ret;
     }
 
-    std::shared_ptr<TMsg> pop_back()
+    Msg* pop_back()
     {
-        std::unique_lock<std::mutex> locker(m_mutex);
-        m_notEmpty.wait(locker, [this] { return !m_queue.empty(); });
+        sem_wait(&m_semMsg);
+        sem_wait(&m_semMutex);
         auto ret = m_queue.back();
-        m_queue.pop_front();
+        m_queue.pop_back();
+        sem_post(&m_semMutex);
         return ret;
     }
 
-    bool empty()
+    bool empty()const
     {
-        std::lock_guard<std::mutex> locker(m_mutex);
-        return m_queue.empty();
+        sem_wait(&m_semMutex);
+        bool ret = m_queue.empty();
+        sem_post(&m_semMutex);
+        return ret;
     }
 
-    size_t size()
+    size_t size()const
     {
-        std::lock_guard<std::mutex> locker(m_mutex);
-        return m_queue.size();
+        sem_wait(&m_semMutex);
+        auto ret = m_queue.size();
+        sem_post(&m_semMutex);
+        return ret;
     }
 
     void clear()
     {
-        std::lock_guard<std::mutex> locker(m_mutex);
+        sem_wait(&m_semMutex);
+        for(auto item : m_queue)
+            if (item)
+                delete item;
         m_queue.clear();
+        sem_post(&m_semMutex);
     }
 
-    std::deque<std::shared_ptr<TMsg>> take_all()
+    std::deque<Msg*> take_all()
     {
-        std::lock_guard<std::mutex> locker(m_mutex);
+        sem_wait(&m_semMutex);
         auto ret = std::move(m_queue);
+        sem_post(&m_semMutex);
         return ret;
     }
 
 private:
-    std::deque<std::shared_ptr<TMsg>> m_queue;
-    std::mutex m_mutex;
-    std::condition_variable m_notEmpty;
+    std::deque<Msg*> m_queue;
+    sem_t m_semMsg;
+    sem_t m_semMutex;
 };
 
 } // namespace ding

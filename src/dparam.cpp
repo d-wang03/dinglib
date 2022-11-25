@@ -66,21 +66,12 @@ DParamPrivate::DParamPrivate(const DParamPrivate &other):DObjectData(other), m_t
     if (other.m_triggerSignal)
         m_triggerSignal = strdup(other.m_triggerSignal);
 }
-DParamPrivate::DParamPrivate(DParamPrivate &&other)noexcept:DObjectData(std::move(other)) 
-{
-    m_triggerName = other.m_triggerName;
-    other.m_triggerName = nullptr;
-    m_triggerSignal = other.m_triggerSignal;
-    other.m_triggerSignal = nullptr;
-}
+
 DParamPrivate *DParamPrivate::clone() const
 {
     return new DParamPrivate(*this);
 }
-DParamPrivate *DParamPrivate::move() noexcept
-{
-    return new DParamPrivate(std::move(*this));
-}
+
 // Class DParam
 D_REGISTER_PARAM_CLASS(DParam);
 /*!
@@ -139,7 +130,7 @@ DParam::~DParam() {}
 const char * DParam::getTriggerName() const
 {
     D_D_CONST(DParam);
-    return d.m_triggerName;
+    return d ? d->m_triggerName : nullptr;
 }
 
 /*!
@@ -149,7 +140,7 @@ const char * DParam::getTriggerName() const
 const char * DParam::getTriggerSignal() const
 {
     D_D_CONST(DParam);
-    return d.m_triggerSignal;
+    return d ? d->m_triggerSignal : nullptr;
 }
 
 /*!
@@ -160,39 +151,41 @@ const char * DParam::getTriggerSignal() const
 void DParam::setTrigger(const char *obj, const char *signal)
 {
     D_D(DParam);
+    if (!d)
+        return;
     if (!obj)
     {
-        if (d.m_triggerName)
-            free(d.m_triggerName);
-        d.m_triggerName = nullptr;
+        if (d->m_triggerName)
+            free(d->m_triggerName);
+        d->m_triggerName = nullptr;
     }
     else
     {
-        if (!d.m_triggerName)
-            d.m_triggerName = strdup(obj);
-        else if (strcmp(obj, d.m_triggerName) != 0)
+        if (!d->m_triggerName)
+            d->m_triggerName = strdup(obj);
+        else if (strcmp(obj, d->m_triggerName) != 0)
         {
-            free(d.m_triggerName);
-            d.m_triggerName = strdup(obj);
+            free(d->m_triggerName);
+            d->m_triggerName = strdup(obj);
         }
-        //else obj is equals to d.m_triggerName. No need to do deep copy.
+        //else obj is equals to d->m_triggerName. No need to do deep copy.
     }
     if (!signal)
     {
-        if (d.m_triggerSignal)
-            free(d.m_triggerSignal);
-        d.m_triggerSignal = nullptr;
+        if (d->m_triggerSignal)
+            free(d->m_triggerSignal);
+        d->m_triggerSignal = nullptr;
     }
     else
     {
-        if (!d.m_triggerSignal)
-            d.m_triggerSignal = strdup(signal);
-        else if (strcmp(signal, d.m_triggerSignal) != 0)
+        if (!d->m_triggerSignal)
+            d->m_triggerSignal = strdup(signal);
+        else if (strcmp(signal, d->m_triggerSignal) != 0)
         {
-            free(d.m_triggerSignal);
-            d.m_triggerSignal = strdup(signal);
+            free(d->m_triggerSignal);
+            d->m_triggerSignal = strdup(signal);
         }
-        //else obj is equals to d.m_triggerSignal. No need to do deep copy.
+        //else obj is equals to d->m_triggerSignal. No need to do deep copy.
     }
 }
 

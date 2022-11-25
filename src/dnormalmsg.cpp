@@ -39,10 +39,7 @@ public:
     virtual ~DNormalMsgPrivate() override = default;
     DNormalMsgPrivate(const DNormalMsgPrivate &other) = default;
     DNormalMsgPrivate &operator=(const DNormalMsgPrivate &rhs) = default;
-    DNormalMsgPrivate(DNormalMsgPrivate &&other) noexcept = default;
-    DNormalMsgPrivate &operator=(DNormalMsgPrivate &&rhs) = default;
     virtual DNormalMsgPrivate *clone() const noexcept override;
-    virtual DNormalMsgPrivate *move() noexcept override;
 
 private:
     std::string m_content;
@@ -51,11 +48,6 @@ private:
 DNormalMsgPrivate *DNormalMsgPrivate::clone() const noexcept
 {
     return new DNormalMsgPrivate(*this);
-}
-
-DNormalMsgPrivate *DNormalMsgPrivate::move() noexcept
-{
-    return new DNormalMsgPrivate(std::move(*this));
 }
 
 // class DNormalMsg
@@ -78,7 +70,7 @@ DNormalMsg::DNormalMsg(const std::string &content)
     : DNormalMsg()
 {
     D_D(DNormalMsg);
-    d.m_content = content;
+    d->m_content = content;
 }
 
 /*!
@@ -125,7 +117,7 @@ DNormalMsg *DNormalMsg::move() noexcept
 std::string DNormalMsg::toString() const
 {
     D_D_CONST(DNormalMsg);
-    return d.m_content;
+    return d ? d->m_content : std::string();
 }
 
 /*!
@@ -136,7 +128,9 @@ bool DNormalMsg::equals(const DParam &other) const
     if (DParam::equals(other))
     {
         auto rhs = static_cast<const DNormalMsg &>(other);
-        return d_func().m_content == rhs.d_func().m_content;
+        auto d = d_func();
+        auto d2 = rhs.d_func();
+        return d && d2 && d->m_content == d2->m_content;
     }
 
     return false;

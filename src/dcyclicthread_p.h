@@ -14,7 +14,6 @@ class DCyclicThreadPrivate : public DObjectPrivate
 public:
     DECLARE_PUBLIC(DCyclicThread)
     DISABLE_COPY(DCyclicThreadPrivate)
-    DISABLE_MOVE(DCyclicThreadPrivate)
     DCyclicThreadPrivate();
     virtual ~DCyclicThreadPrivate() override;
 

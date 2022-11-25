@@ -336,7 +336,7 @@ TEST_F(DObjectTest, AddMaxiumSignals)
     EXPECT_TRUE(m_obj1->addSignal("sig10",&TestObject::output<10>));
     EXPECT_TRUE(m_obj1->addSignal("sig11",&TestObject::output<11>));
     EXPECT_TRUE(m_obj1->addSignal("sig12",&TestObject::output<12>));
-    EXPECT_TRUE(m_obj1->addSignal("sig13",&TestObject::output<13>));
+    EXPECT_FALSE(m_obj1->addSignal("sig13",&TestObject::output<13>));
     EXPECT_FALSE(m_obj1->addSignal("sig14",&TestObject::output<14>));
     EXPECT_FALSE(m_obj1->addSignal("sig15",&TestObject::output<15>));
     EXPECT_FALSE(m_obj1->addSignal("sig16",&TestObject::output<16>));

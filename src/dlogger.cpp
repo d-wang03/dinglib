@@ -94,7 +94,8 @@ int DLogger::processMsg(DLogMsg &msg)
     if (msg.getLevel() >= getOutputLevel())
     {
         D_D(DLogger);
-        d.m_defaultProcessor(msg);
+        if (d)
+            d->m_defaultProcessor(msg);
     }
     return 0;
 }
@@ -105,7 +106,8 @@ int DLogger::processMsg(DLogMsg &msg)
 void DLogger::setModuleName(const std::string &name)
 {
     D_D(DLogger);
-    d.m_moduleName = name;
+    if (d)
+        d->m_moduleName = name;
 }
 
 /*!
@@ -114,7 +116,7 @@ void DLogger::setModuleName(const std::string &name)
 std::string DLogger::getModuleName()const
 {
     D_D_CONST(DLogger);
-    return d.m_moduleName;
+    return d? d->m_moduleName : std::string();
 }
 
 /*!
@@ -123,7 +125,8 @@ std::string DLogger::getModuleName()const
 void DLogger::setOutputLevel(DLogMsg::MsgLevel level)
 {
     D_D(DLogger);
-    d.m_outputLevel = level;
+    if (d)
+        d->m_outputLevel = level;
 }
 
 /*!
@@ -132,7 +135,7 @@ void DLogger::setOutputLevel(DLogMsg::MsgLevel level)
 DLogMsg::MsgLevel DLogger::getOutputLevel()const
 {
     D_D_CONST(DLogger);
-    return d.m_outputLevel;
+    return d? d->m_outputLevel : DLogMsg::Debug;
 }
 
 /*!
@@ -152,7 +155,8 @@ DLogMsg::MsgLevel DLogger::getOutputLevel()const
 void DLogger::setDefaultProcessor(std::function<void(const DLogMsg &)> &&processor)
 {
     D_D(DLogger);
-    d.m_defaultProcessor = std::move(processor);
+    if (d)
+        d->m_defaultProcessor = std::move(processor);
 }
 
 } // namespace ding

@@ -13,10 +13,7 @@ public:
     virtual ~DParamPrivate() override;
     DParamPrivate(const DParamPrivate &other);
     DParamPrivate &operator=(const DParamPrivate &rhs);
-    DParamPrivate(DParamPrivate &&other) noexcept;
-    DParamPrivate &operator=(DParamPrivate &&rhs);
     virtual DParamPrivate *clone() const override;
-    virtual DParamPrivate *move() noexcept override;
 
 private:
     char *m_triggerName;

@@ -11,7 +11,7 @@ namespace ding
 // Class DObjectPrivate
 DObjectPrivate::DObjectPrivate(){}
 DObjectPrivate::DObjectPrivate(const DObjectPrivate &) = default;
-DObjectPrivate::DObjectPrivate(DObjectPrivate &&other) noexcept = default;
+// DObjectPrivate::DObjectPrivate(DObjectPrivate &&other) noexcept = default;
 // DObjectPrivate::DObjectPrivate(DObjectPrivate &&other) noexcept : DObjectData(std::move(other))
 // {
 //     for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
@@ -26,10 +26,10 @@ DObjectPrivate *DObjectPrivate::clone() const
     return new DObjectPrivate(*this);
 }
 
-DObjectPrivate *DObjectPrivate::move() noexcept
-{
-    return new DObjectPrivate(std::move(*this));
-}
+// DObjectPrivate *DObjectPrivate::move() noexcept
+// {
+//     return new DObjectPrivate(std::move(*this));
+// }
 
 // Class DObject
 D_REGISTER_OBJECT_CLASS(DObject);
@@ -106,7 +106,9 @@ bool DObject::addSignalImp(const std::string &name, SigSlotFunc&& signal)
         return false;
 
     D_D(DObject);
-    return d.addSignal(name.c_str(), std::move(signal));
+    if (!d)
+        return false;
+    return d->addSignal(name.c_str(), std::move(signal));
 }
 
 bool DObject::connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot)
@@ -115,7 +117,9 @@ bool DObject::connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver
         return false;
 
     D_D(DObject);
-    auto found = d.find(signal);
+    if (!d)
+        return false;    
+    auto found = d->find(signal);
     if (!found)
         return false;
     found->addSlot(std::move(receiver), std::move(slot));
@@ -126,16 +130,18 @@ bool DObject::connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver
 bool DObject::disconnectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot)
 {
     D_D(DObject);
+    if (!d)
+        return false;    
     if (!signal)
     {
         for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
         {
-            d.m_signals[i].removeSlot();
+            d->m_signals[i].removeSlot();
         }
         return true;
     }
 
-    auto found = d.find(signal);
+    auto found = d->find(signal);
     if (!found)
         return false;
     
@@ -148,16 +154,18 @@ bool DObject::disconnectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& recei
     return true;
 }
 
-void DObject::emitSignalImp(SigSlotFunc&& signal, std::function<void (const std::shared_ptr<DObject>&, SigSlotFunc)>&& func)
+void DObject::emitSignalImp(SigSlotFunc&& signal, std::function<void (DObject*, SigSlotFunc)>&& func)
 {
     D_D(DObject);
-    auto found = d.find(signal);
+    if (!d)
+        return;    
+    auto found = d->find(signal);
     if (!found)
         return;
     for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
     {
-        auto slot = found->m_slots[i];
-        auto ptr = slot.m_obj.lock();
+        auto &slot = found->m_slots[i];
+        auto ptr = slot.m_obj.lock().get();
         if(ptr)
             func(ptr,slot.m_slot);
     }
@@ -166,13 +174,17 @@ void DObject::emitSignalImp(SigSlotFunc&& signal, std::function<void (const std:
 bool DObject::isSignalImp(SigSlotFunc&& signal)const
 {
     D_D_CONST(DObject);
-    return d.exists(signal);
+    if (!d)
+        return false;
+    return d->exists(signal);
 }
 
 bool DObject::isSignal(std::string name)const
 {
     D_D_CONST(DObject);
-    return d.exists(name.c_str());
+    if (!d)
+        return false;
+    return d->exists(name.c_str());
 }
 
 }

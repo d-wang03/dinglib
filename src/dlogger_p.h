@@ -11,7 +11,6 @@ class DLoggerPrivate : public DCyclicThreadPrivate
 public:
     DECLARE_PUBLIC(DLogger)
     DISABLE_COPY(DLoggerPrivate)
-    DISABLE_MOVE(DLoggerPrivate)
     DLoggerPrivate();
     virtual ~DLoggerPrivate() override = default;
 

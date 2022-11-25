@@ -62,17 +62,24 @@ DCyclicThread::~DCyclicThread() = default;
 bool DCyclicThread::start()
 {
     D_D(DCyclicThread);
-    if (d.m_bRunning || (d.m_taskReturn.valid() && d.m_taskReturn.wait_for(0s) == std::future_status::timeout))
+    if (!d)
+    {
+        loggingE("Invalid Object.");
+        return false;
+    }
+
+    if (d->m_bRunning || (d->m_taskReturn.valid() && d->m_taskReturn.wait_for(0s) == std::future_status::timeout))
     {
         loggingW("Thread is already running.");
         return false;
     }
 
-    d.m_bRunning = true;
-    d.m_taskReturn = std::async(std::launch::async, [this]() {
+    d->m_bRunning = true;
+    d->m_taskReturn = std::async(std::launch::async, [this]() {
         int ret = 0;
         initialize();
-        while (d_func().m_bRunning)
+        auto d = d_func();
+        while (d && d->m_bRunning)
         {
             ret = cycle();
         }
@@ -94,14 +101,20 @@ bool DCyclicThread::start()
 bool DCyclicThread::stop()
 {
     D_D(DCyclicThread);
-    if (d.m_bRunning)
+    if (!d)
     {
-        d.m_bRunning = false;
+        loggingE("Invalid Object.");
+        return false;
+    }
 
-        if (d.m_taskReturn.valid())
+    if (d->m_bRunning)
+    {
+        d->m_bRunning = false;
+
+        if (d->m_taskReturn.valid())
         {
             additionalStopSteps();
-            if (d.m_taskReturn.wait_for(2s) != std::future_status::ready)
+            if (d->m_taskReturn.wait_for(2s) != std::future_status::ready)
             {
                 loggingE("Thread %1 can not terminated.", getTypeName());
                 return false;
@@ -123,7 +136,9 @@ bool DCyclicThread::stop()
 bool DCyclicThread::isRunning() const
 {
     D_D_CONST(DCyclicThread);
-    return d.m_bRunning;
+    if (!d)
+        return false;
+    return d->m_bRunning;
 }
 
 /*!
@@ -132,7 +147,12 @@ bool DCyclicThread::isRunning() const
 std::shared_future<int> DCyclicThread::getFuture()
 {
     D_D(DCyclicThread);
-    return d.m_taskReturn.share();
+    if (!d)
+    {
+        loggingE("Invalid Object.");
+        return std::shared_future<int>();
+    }
+    return d->m_taskReturn.share();
 }
 
 /*!

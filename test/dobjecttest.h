@@ -3,6 +3,7 @@
 
 #include "gtest/gtest.h"
 #include "dobject.h"
+#include "utility/delapsedtimer.h"
 #include <queue>
 #include <iostream>
 
@@ -19,6 +20,10 @@ private:
     int m_nSlot2Count;
     bool m_bDetailInfo;
     std::queue<DParam> m_signals;
+    DElapsedTimer timer;
+    uint64_t perf_sum;
+    uint64_t perf_index;
+    uint64_t perf_num;
 
 public:
     TestObject(bool detailInfo = false)
@@ -26,9 +31,13 @@ public:
         , m_nSlot1Count(0)
         , m_nSlot2Count(0)
         , m_bDetailInfo(detailInfo)
+        , perf_sum(0)
+        , perf_index(0)
+        , perf_num(0)
     {
         ADD_SIGNAL(TestObject, sig1);
         ADD_SIGNAL(TestObject, sig2);
+        ADD_SIGNAL(TestObject, perfSender);
     }
     ~TestObject()override = default;
     TestObject(const TestObject&) = default;
@@ -41,6 +50,9 @@ public:
         m_bDetailInfo = rhs.m_bDetailInfo;
         rhs.m_bDetailInfo = false;
         m_signals = std::move(rhs.m_signals);
+        perf_sum = rhs.perf_sum;
+        perf_index = rhs.perf_index;
+        perf_num = rhs.perf_num;
     }
     void slot1(DParam &param) { ++m_nSlot1Count; }
 
@@ -48,15 +60,43 @@ public:
 
     void tempSlot(DParam &param) {}
 
-    void signalChecker(DParam &param)
+    void setPerfNum(uint64_t value)
     {
-        m_signals.push(*param.clone());
-        if (m_bDetailInfo)
+        perf_num = value;
+    }
+    class PerfMsg : public DParam
+    {
+        public:
+        PerfMsg():DParam(__func__){}
+        PerfMsg(PerfMsg &&other):DParam(std::move(other))
         {
-            std::cout << "Trigger Name:" << param.getTriggerName()
-                      << "Trigger Signal:" << param.getTriggerSignal()
-                      << std::endl;
+            value = other.value;
         }
+        PerfMsg* move()noexcept override
+        {
+            return new PerfMsg(std::move(*this));
+        }
+        uint64_t value;
+    };
+    void perfSender(DParam& param)
+    {
+        if (++perf_index > perf_num)
+            return;
+        PerfMsg &msg = static_cast<PerfMsg&>(param);
+        timer.reset();
+        emitSignal(&TestObject::perfSender, msg);
+    }
+
+    void perfReceiver(DParam &param) 
+    {
+        PerfMsg &msg = static_cast<PerfMsg&>(param);
+        perf_sum += timer.elapsed<std::chrono::nanoseconds>();
+        perfSender(msg);
+    }
+
+    void showPerfResult()const
+    {
+        std::cout << "Total send->receive: " << perf_index << ", cost " << perf_sum << " nanoseconds. average cost is " << perf_sum/perf_index << std::endl;
     }
 
     int getSlot1Count() { return m_nSlot1Count; }
@@ -89,18 +129,6 @@ public:
         emitSignal(&TestObject::output<Index>, param);
     }
 };
-
-// inline void checkSignal(const std::shared_ptr<TestObject> &checker, const std::string &exp_obj,
-//                         const std::string &exp_sig)
-// {
-//     bool ret = checker->empty();
-//     EXPECT_FALSE(ret);
-//     if (ret)
-//         return;
-//     DParam param = checker->getFirstSignal();
-//     EXPECT_STREQ(param.getTriggerName(), exp_obj.c_str());
-//     EXPECT_STREQ(param.getTriggerSignal(), exp_sig.c_str());
-// }
 
 // The fixture for testing class TObjectTest.
 class DObjectTest : public ::testing::Test

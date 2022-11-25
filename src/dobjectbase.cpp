@@ -85,17 +85,18 @@ DObjectData::~DObjectData()
 {
     if (m_typename)
         free(m_typename);
+    q_ptr = nullptr;
 }
 DObjectData::DObjectData(const DObjectData &other) : q_ptr(nullptr), m_typename(nullptr)
 {
     if (other.m_typename)
         m_typename = strdup(other.m_typename);
 }
-DObjectData::DObjectData(DObjectData &&other) noexcept : q_ptr(nullptr)
-{
-    m_typename = other.m_typename;
-    other.m_typename = nullptr;
-}
+// DObjectData::DObjectData(DObjectData &&other) noexcept : q_ptr(nullptr)
+// {
+//     m_typename = other.m_typename;
+//     other.m_typename = nullptr;
+// }
 
 // Class DObjectBase
 /*!
@@ -103,16 +104,22 @@ DObjectData::DObjectData(DObjectData &&other) noexcept : q_ptr(nullptr)
     It is only used for derived classes.
  */
 DObjectBase::DObjectBase(const char *name, DObjectData &dd)
-    : d_ptr(std::unique_ptr<DObjectData>(&dd))
+    : d_ptr(&dd)
 {
     d_ptr->q_ptr = this;
     setTypeName(name);
+}
+
+DObjectBase::~DObjectBase()
+{
+    if (d_ptr)
+        delete d_ptr;
 }
 /*!
     Copy ctor based on \a other.
  */
 DObjectBase::DObjectBase(const DObjectBase &other)
-    : d_ptr(std::unique_ptr<DObjectData>(other.d_ptr->clone()))
+    : d_ptr(other.d_ptr->clone())
 {
     if(d_ptr)
         d_ptr->q_ptr = this;
@@ -122,7 +129,9 @@ DObjectBase::DObjectBase(const DObjectBase &other)
  */
 DObjectBase &DObjectBase::operator=(const DObjectBase &rhs)
 {
-    d_ptr = std::unique_ptr<DObjectData>(rhs.d_ptr->clone());
+    d_ptr = rhs.d_ptr->clone();
+    if (d_ptr)
+        d_ptr->q_ptr = this;
     return *this;
 }
 
@@ -131,10 +140,11 @@ DObjectBase &DObjectBase::operator=(const DObjectBase &rhs)
     Move ctor for \a other.
  */
 DObjectBase::DObjectBase(DObjectBase &&other) noexcept
-    : d_ptr(other.d_ptr->move())
+    : d_ptr(other.d_ptr)
 {
     if (d_ptr)
         d_ptr->q_ptr = this;
+    other.d_ptr = nullptr;
 }
 
 /*!
@@ -143,8 +153,10 @@ DObjectBase::DObjectBase(DObjectBase &&other) noexcept
  */
 DObjectBase &DObjectBase::operator=(DObjectBase &&rhs)
 {
-    //not just move d_ptr to avoid null pointer dereference.
-    d_ptr = std::unique_ptr<DObjectData>(rhs.d_ptr->move());
+    d_ptr = rhs.d_ptr;
+    if (d_ptr)
+        d_ptr->q_ptr = this;
+    rhs.d_ptr = nullptr;
     return *this;
 }
 
