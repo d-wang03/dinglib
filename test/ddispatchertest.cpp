@@ -15,7 +15,7 @@ TEST(DDispatcherTest, ctor)
 TEST(DDispatcherTest, addRoutePath)
 {
     auto dispatcher = makeObject<DDispatcher>();
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg1"), &DDispatcher::output<1>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg1"), &DDispatcher::output<1>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<1>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath0"));
 }
@@ -23,49 +23,49 @@ TEST(DDispatcherTest, addRoutePath)
 TEST(DDispatcherTest, addRoutePathMax)
 {
     auto dispatcher = makeObject<DDispatcher>();
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg0"), &DDispatcher::output<0>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg0"), &DDispatcher::output<0>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<0>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath0"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg1"), &DDispatcher::output<1>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg1"), &DDispatcher::output<1>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<1>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath1"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg2"), &DDispatcher::output<2>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg2"), &DDispatcher::output<2>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<2>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath2"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg3"), &DDispatcher::output<3>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg3"), &DDispatcher::output<3>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<3>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath3"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg4"), &DDispatcher::output<4>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg4"), &DDispatcher::output<4>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<4>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath4"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg5"), &DDispatcher::output<5>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg5"), &DDispatcher::output<5>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<5>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath5"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg6"), &DDispatcher::output<6>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg6"), &DDispatcher::output<6>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<6>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath6"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg7"), &DDispatcher::output<7>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg7"), &DDispatcher::output<7>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<7>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath7"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg8"), &DDispatcher::output<8>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg8"), &DDispatcher::output<8>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<8>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath8"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg9"), &DDispatcher::output<9>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg9"), &DDispatcher::output<9>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<9>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath9"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg10"), &DDispatcher::output<10>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg10"), &DDispatcher::output<10>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<10>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath10"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg11"), &DDispatcher::output<11>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg11"), &DDispatcher::output<11>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<11>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath11"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg12"), &DDispatcher::output<12>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg12"), &DDispatcher::output<12>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<12>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath12"));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg13"), &DDispatcher::output<13>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg13"), &DDispatcher::output<13>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<13>));
     EXPECT_TRUE(dispatcher->isSignal("RoutePath13"));
-    EXPECT_FALSE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg14"), &DDispatcher::output<14>));
+    EXPECT_FALSE(dispatcher->addRoutePath(new DNormalMsg("msg14"), &DDispatcher::output<14>));
     EXPECT_FALSE(dispatcher->isSignal(&DDispatcher::output<14>));
     EXPECT_FALSE(dispatcher->isSignal("RoutePath14"));
 }
@@ -73,8 +73,8 @@ TEST(DDispatcherTest, addRoutePathMax)
 TEST(DDispatcherTest, addRoutePath_dup_msg)
 {
     auto dispatcher = makeObject<DDispatcher>();
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg1"), &DDispatcher::output<0>));
-    EXPECT_FALSE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg1"), &DDispatcher::output<1>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg1"), &DDispatcher::output<0>));
+    EXPECT_FALSE(dispatcher->addRoutePath(new DNormalMsg("msg1"), &DDispatcher::output<1>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<0>));
     EXPECT_FALSE(dispatcher->isSignal(&DDispatcher::output<1>));
 }
@@ -82,18 +82,18 @@ TEST(DDispatcherTest, addRoutePath_dup_msg)
 TEST(DDispatcherTest, addRoutePath_dup_signal)
 {
     auto dispatcher = makeObject<DDispatcher>();
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg1"), &DDispatcher::output<0>));
-    EXPECT_FALSE(dispatcher->addRoutePath(std::make_unique<DNormalMsg>("msg2"), &DDispatcher::output<0>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DNormalMsg("msg1"), &DDispatcher::output<0>));
+    EXPECT_FALSE(dispatcher->addRoutePath(new DNormalMsg("msg2"), &DDispatcher::output<0>));
     EXPECT_TRUE(dispatcher->isSignal(&DDispatcher::output<0>));
 }
 
 TEST(DDispatcherTest, run)
 {
     auto dispatcher = makeObject<DDispatcher>();
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DLogMsg>(DLogMsg::Debug, "", ""), &DDispatcher::output<0>));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DLogMsg>(DLogMsg::Info, "", ""), &DDispatcher::output<1>));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DLogMsg>(DLogMsg::Warning, "", ""), &DDispatcher::output<2>));
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<DLogMsg>(DLogMsg::Error, "", ""), &DDispatcher::output<3>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Debug, "", ""), &DDispatcher::output<0>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Info, "", ""), &DDispatcher::output<1>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Warning, "", ""), &DDispatcher::output<2>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Error, "", ""), &DDispatcher::output<3>));
     auto receiver = makeObject<TestObject>();
     auto sender = makeObject<DObject>();
     EXPECT_TRUE(connect(sender, &DObject::logging, dispatcher, &DDispatcher::input));
@@ -115,7 +115,7 @@ TEST(DDispatcherTest, run)
 TEST(DDispatcherTest, perf)
 {
     auto dispatcher = makeObject<DDispatcher>();
-    EXPECT_TRUE(dispatcher->addRoutePath(std::make_unique<TestObject::PerfMsg>(), &DDispatcher::output<0>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new TestObject::PerfMsg(), &DDispatcher::output<0>));
 
     auto obj = makeObject<TestObject>();
     obj->setPerfNum(1000000);
@@ -124,9 +124,9 @@ TEST(DDispatcherTest, perf)
     EXPECT_TRUE(dispatcher->start());
     
     TestObject::PerfMsg msg;
-    msg.value = 100;
+    msg.setValue(100);
     obj->perfSender(msg);
-    sleep(5);
+    sleep(3);
     dispatcher->stop();
     obj->showPerfResult();
     // EXPECT_EQ(obj->getSlot2Count(), 10);

@@ -6,7 +6,7 @@
 
 namespace ding
 {
-template <typename TMsg, typename = std::enable_if_t<std::is_base_of<DParam, std::decay_t<TMsg>>::value>>
+// template <typename TMsg, typename = std::enable_if_t<std::is_base_of<DParam, std::decay_t<TMsg>>::value>>
 class DQueueThread : public DCyclicThread
 {
     DISABLE_COPY(DQueueThread)
@@ -18,17 +18,11 @@ public:
     // slot input
     void input(DParam &param)
     {
-        if (!param.is_derived_from<TMsg>())
-            return;
-        m_queue.push_back(static_cast<TMsg &>(param));
+        // if (!param.is_derived_from<TMsg>())
+        //     return;
+        m_queue.push_back(param);
         bypass(param);
     }
-
-    // virtual inline void addSignals()override
-    // {
-    //     DObject::addSignals();
-    //     ADD_SIGNAL(DQueueThread, bypass);
-    // }
 
 protected:
     DQueueThread(const char *type)
@@ -43,7 +37,7 @@ protected:
     }
 
     // operations
-    virtual void additionalStopSteps() override { m_queue.push_back(TMsg()); }
+    virtual void additionalStopSteps() override { m_queue.push_back(DParam()); }
     virtual int cycle() override
     {
         int ret = 0;
@@ -56,10 +50,10 @@ protected:
     // thread functions, must be implemented by derived classes.
     virtual void initialize() override {}
     virtual void destroy() override {}
-    virtual int processMsg(TMsg &msg) = 0;
+    virtual int processMsg(DParam &msg) = 0;
 
 private:
-    DSyncQueue<TMsg> m_queue;
+    DSyncQueue<DParam> m_queue;
 };
 
 } // namespace ding

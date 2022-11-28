@@ -33,7 +33,7 @@ inline void _androidLogProcess(const DLogMsg &msg)
 #endif
 
 class DLoggerPrivate;
-class DLogger : public DQueueThread<DLogMsg>
+class DLogger : public DQueueThread
 {
     DECLARE_PRIVATE(DLogger)
     DISABLE_COPY(DLogger)
@@ -50,7 +50,7 @@ public:
     void setDefaultProcessor(std::function<void(const DLogMsg &)> &&processor);
 
 protected:
-    virtual int processMsg(DLogMsg &msg) override;
+    virtual int processMsg(DParam &msg) override;
     DLogger(const char *type, DCyclicThreadPrivate &dd);
 };
 

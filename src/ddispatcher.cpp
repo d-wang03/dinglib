@@ -32,10 +32,18 @@ namespace ding
 // class DRoutePath
 struct DRoutePath
 {
-    std::unique_ptr<DParam> msg;
+    DParam* msg;
     DDispatcher::OutFunc signal;
-    DRoutePath(std::unique_ptr<DParam> &&_msg, DDispatcher::OutFunc _signal) : msg(std::move(_msg)), signal(_signal)
-    {}
+    DRoutePath(): msg(nullptr), signal(nullptr){}
+    ~DRoutePath()
+    {
+        if (msg)
+            delete msg;
+    }
+    bool empty()const
+    {
+        return !msg;
+    }
 };
 
 // class DDispatcherPrivate
@@ -47,30 +55,44 @@ public:
     DDispatcherPrivate() = default;
     virtual ~DDispatcherPrivate() = default;
 
-    inline auto find(const DParam &param) const
+    inline const DRoutePath* find(const DParam &param) const
     {
-        auto end = m_paths.cend();
-        for(auto it = m_paths.cbegin();it != end; ++it)
+        for(int i = 0; i < MAX_SIGNAL_NUM; ++i)
         {
-            auto& msg = (*it).msg;
-            if (msg && msg->equals(param))
-                return it;
+            if (!m_paths[i].msg)
+                return nullptr;
+            else if (m_paths[i].msg->equals(param))
+                return &m_paths[i];
         }
-        return end;
+        return nullptr;
     }
     inline bool contains(const DParam &param) const
     {
-        return find(param) != m_paths.cend();
+        return find(param) != nullptr;
     }
     inline DDispatcher::OutFunc route(const DParam &param) const
     {
-        auto it = find(param);
-        if (it == m_paths.cend())
-            return nullptr;
-        else
-            return it->signal;
+        auto ret = find(param);
+        if (ret)
+            return ret->signal;
+        return nullptr;
     }
-    std::vector<DRoutePath> m_paths;
+    inline bool addPath(DParam* msg, DDispatcher::OutFunc signal)
+    {
+        if (!msg || !signal)
+            return false;
+        for (int i = 0; i < MAX_SIGNAL_NUM; ++i)
+        {
+            if (m_paths[i].empty())
+            {
+                m_paths[i].msg = msg;
+                m_paths[i].signal = signal;
+                return true;
+            }
+        }
+        return false;
+    }
+    DRoutePath m_paths[MAX_SIGNAL_NUM];
     uint8_t m_pathIndex;
 };
 
@@ -81,7 +103,7 @@ public:
     There should be only one dispatcher in the framework.
  */
 DDispatcher::DDispatcher()
-    : DQueueThread<DParam>(__func__, *new DDispatcherPrivate)
+    : DQueueThread(__func__, *new DDispatcherPrivate)
 {
     D_D(DDispatcher);
     if (d)
@@ -99,15 +121,15 @@ DDispatcher::~DDispatcher() = default;
     Add message path with standard message \a msg and the related \a signal.
     Returns \c true if no error, otherwise returns \c false.
  */
-bool DDispatcher::addRoutePath(std::unique_ptr<DParam> &&msg, OutFunc signal)
+bool DDispatcher::addRoutePath(DParam *msg, OutFunc signal)
 {
     bool ret = false;
     D_D(DDispatcher);
-    if (d && !d->contains(*msg))
+    if (d && msg && !d->contains(*msg))
     {
-        ret = addSignal(string_format("RoutePath%1",d->m_pathIndex++), signal);
+        ret = addSignal(string_format("RoutePath%1",d->m_pathIndex++).c_str(), signal);
         if (ret)
-            d->m_paths.emplace_back(std::move(msg), signal);
+            d->addPath(msg, signal);
     }
     return ret;
 }

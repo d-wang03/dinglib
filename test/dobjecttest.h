@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include "dobject.h"
 #include "utility/delapsedtimer.h"
+#include "dparam_p.h"
 #include <queue>
 #include <iostream>
 
@@ -20,7 +21,11 @@ private:
     int m_nSlot2Count;
     bool m_bDetailInfo;
     std::queue<DParam> m_signals;
-    DElapsedTimer timer;
+    DElapsedTimer *timer;
+#ifdef __x86_64__
+    DElapsedTimer2 *timer2;
+    uint64_t perf_sum2;
+#endif
     uint64_t perf_sum;
     uint64_t perf_index;
     uint64_t perf_num;
@@ -34,6 +39,11 @@ public:
         , perf_sum(0)
         , perf_index(0)
         , perf_num(0)
+        , timer(new DElapsedTimer(false))
+#ifdef __x86_64__
+        , timer2(new DElapsedTimer2(2808,false))
+        , perf_sum2(0)
+#endif
     {
         ADD_SIGNAL(TestObject, sig1);
         ADD_SIGNAL(TestObject, sig2);
@@ -64,43 +74,75 @@ public:
     {
         perf_num = value;
     }
-    class PerfMsg : public DParam
+    class PerfMsgPrivate : public DParamPrivate
     {
         public:
-        PerfMsg():DParam(__func__){}
-        PerfMsg(PerfMsg &&other):DParam(std::move(other))
+        PerfMsgPrivate():DParamPrivate(),m_value(0){}
+        uint64_t m_value;
+    };
+    class PerfMsg : public DParam
+    {
+        DECLARE_PRIVATE(PerfMsg);
+        public:
+        PerfMsg():DParam(__func__, *new PerfMsgPrivate){}
+        inline uint64_t getValue()const
         {
-            value = other.value;
+            D_D_CONST(PerfMsg);
+            return d ? d->m_value : 0;
         }
-        PerfMsg* move()noexcept override
+        void setValue(uint64_t value)
         {
-            return new PerfMsg(std::move(*this));
+            D_D(PerfMsg);
+            if (d)
+                d->m_value = value;
         }
-        uint64_t value;
     };
     void perfSender(DParam& param)
     {
-        if (++perf_index > perf_num)
+        if (perf_index == 0)
+        {
+            timer->reset();
+        #ifdef __x86_64__
+            timer2->reset();
+        #endif
+            ++perf_index;
+            emitSignal(&TestObject::perfSender, param);
+        }
+        else if (perf_index < perf_num)
+        {
+            ++perf_index;
+            emitSignal(&TestObject::perfSender, param);
+        }
+        else
+        {
+            perf_sum = timer->elapsed<std::chrono::nanoseconds>();
+        #ifdef __x86_64__
+            perf_sum2 += timer2->elapsed();
+        #endif            
             return;
-        PerfMsg &msg = static_cast<PerfMsg&>(param);
-        timer.reset();
-        emitSignal(&TestObject::perfSender, msg);
+        }
     }
 
     void perfReceiver(DParam &param) 
     {
-        PerfMsg &msg = static_cast<PerfMsg&>(param);
-        perf_sum += timer.elapsed<std::chrono::nanoseconds>();
-        perfSender(msg);
+        perfSender(param);
     }
 
     void showPerfResult()const
     {
-        std::cout << "Total send->receive: " << perf_index << ", cost " << perf_sum << " nanoseconds. average cost is " << perf_sum/perf_index << std::endl;
+        std::cout << "std::chrono: Total send->receive: " << perf_index << ", cost " << perf_sum << " nanoseconds. average cost is " << perf_sum/perf_index << std::endl;
+        #ifdef __x86_64
+        std::cout << "rdtscp: Total send->receive: " << perf_index << ", cost " << perf_sum2 << " nanoseconds. average cost is " << perf_sum2/perf_index << std::endl;
+        #endif
     }
 
     int getSlot1Count() { return m_nSlot1Count; }
     int getSlot2Count() { return m_nSlot2Count; }
+    void clearSlotCounter()
+    {
+        m_nSlot1Count = 0;
+        m_nSlot2Count = 0;
+    }
     DParam getFirstSignal()
     {
         if (m_signals.empty())

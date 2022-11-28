@@ -14,7 +14,7 @@
 namespace ding
 {
 class DDispatcherPrivate;
-class DDispatcher : public DQueueThread<DParam>
+class DDispatcher : public DQueueThread
 {
     DECLARE_PRIVATE(DDispatcher)
     DISABLE_COPY(DDispatcher)
@@ -30,7 +30,7 @@ public:
         emitSignal(&DDispatcher::output<Index>, param);
     }
 
-    bool addRoutePath(std::unique_ptr<DParam> &&msg, OutFunc signal);
+    bool addRoutePath(DParam *msg, OutFunc signal);
 
 protected:
     virtual int processMsg(DParam &msg) override;

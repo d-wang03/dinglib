@@ -263,12 +263,25 @@ TEST_F(DObjectTest, SlotEmitTime)
 {
     EXPECT_TRUE(connect(m_obj1, &TestObject::sig1, m_obj2, &TestObject::slot1));
     int i = 0;
-    int64_t sum = 0;
+    int64_t sum = 1000000;
+
+    m_obj2->clearSlotCounter();
     DElapsedTimer timer;
-    for (i=0; i < 1000000; ++i)
+    for (i=0; i < sum; ++i)
         m_obj1->emitSignal(&TestObject::sig1, DParam{});
-    auto t = timer.elapsed<std::chrono::microseconds>();
-    std::cout << m_obj2->getSlot1Count() << " time signal emit cost " << t << " microseconds. " << std::endl;
+    auto t = timer.elapsed<std::chrono::nanoseconds>();
+    std::cout << "chrono::steady_clock: " << m_obj2->getSlot1Count() << " time signal emit cost " << t << " nanoseconds. average is " << t/m_obj2->getSlot1Count() << std::endl;
+
+    #ifdef __x86_64__
+    m_obj2->clearSlotCounter();
+    DElapsedTimer2 timer2(2808,true);
+    for (i=0; i < sum; ++i)
+    {
+        m_obj1->emitSignal(&TestObject::sig1, DParam{});
+    }
+    auto t2 = timer2.elapsed();
+    std::cout << "rdtscp: " <<  m_obj2->getSlot1Count() << " time signal emit cost " << t2 << " nanoseconds. average is " << t2/m_obj2->getSlot1Count() << std::endl;
+    #endif
 }
 
 TEST_F(DObjectTest, ErrSigEmit)

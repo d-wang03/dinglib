@@ -51,7 +51,7 @@ DLoggerPrivate::DLoggerPrivate()
     \note It is NOT recommended to use this constructor.
  */
 DLogger::DLogger()
-    : DQueueThread<DLogMsg>(__func__, *new DLoggerPrivate)
+    : DQueueThread(__func__, *new DLoggerPrivate)
 {
 }
 
@@ -73,7 +73,7 @@ DLogger::DLogger(const std::string &modualName, DLogMsg::MsgLevel outputLevel)
     \note It is NOT recommended to use this constructor.
  */
 DLogger::DLogger(const char *type, DCyclicThreadPrivate &dd)
-    : DQueueThread<DLogMsg>(type, dd)
+    : DQueueThread(type, dd)
 {
 }
 
@@ -89,13 +89,16 @@ DLogger::~DLogger()
     This virtual function is to process log message \a msg.
     DLogger's process is outputting to stdout.
  */
-int DLogger::processMsg(DLogMsg &msg)
+int DLogger::processMsg(DParam &msg)
 {
-    if (msg.getLevel() >= getOutputLevel())
+    if (!msg.is_derived_from<DLogMsg>())
+        return -1;
+    DLogMsg& logMsg = static_cast<DLogMsg&>(msg);
+    if (logMsg.getLevel() >= getOutputLevel())
     {
         D_D(DLogger);
         if (d)
-            d->m_defaultProcessor(msg);
+            d->m_defaultProcessor(logMsg);
     }
     return 0;
 }
