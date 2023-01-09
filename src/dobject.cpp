@@ -182,15 +182,20 @@ void DObject::emitSignalImp(SigSlotFunc&& signal, DParam& arg)
     for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
     {
         auto &slot = found->m_slots[i];
-        if(slot.m_slot)
+        // if(slot.m_slot)
+        // {
+        //     DObject* ptr = slot.m_obj.lock().get();
+        //     if (ptr)
+        //     {
+        //         auto func = reinterpret_cast<void (DObject::*)(DParam&)>(slot.m_slot);
+        //         (ptr->*func)(arg);
+        //     }
+        // }    
+        if (slot.m_slot || !slot.m_obj.expired())
         {
-            DObject* ptr = slot.m_obj.lock().get();
-            if (ptr)
-            {
-                auto func = reinterpret_cast<void (DObject::*)(DParam&)>(slot.m_slot);
-                (ptr->*func)(arg);
-            }
-        }    
+            auto func = reinterpret_cast<void (DObject::*)(DParam&)>(slot.m_slot);
+            (slot.m_raw->*func)(arg);
+        }
     }
 }
 

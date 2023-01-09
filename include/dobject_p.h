@@ -17,12 +17,14 @@ struct DSignal
     {
         std::weak_ptr<DObject> m_obj;
         SigFunc m_slot;
+        DObject* m_raw;
         DSlot(): m_slot(nullptr){}
         ~DSlot() = default;
         void set(std::weak_ptr<DObject>&&obj, SigFunc&& slot)
         {
             m_obj = std::move(obj);
             m_slot = std::move(slot);
+            m_raw = m_obj.lock().get();
         }
         void clear()
         {
@@ -31,7 +33,7 @@ struct DSignal
         }
         bool empty()const
         {
-            return m_obj.expired() || !m_slot;
+            return !m_slot || m_obj.expired();
         }
     };
 
