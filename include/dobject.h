@@ -81,8 +81,14 @@ public:
     {
         emitSignalImp(reinterpret_cast<SigSlotFunc>(signal), [&args...](DObject *obj,SigSlotFunc slot){
             auto func = reinterpret_cast<void (DObject::*)(Args...)>(slot);
-                obj->call(func, std::forward<Args>(args)...);
+            obj->call(func, std::forward<Args>(args)...);
         });
+    }
+
+    template<typename T,typename = std::enable_if_t<std::is_base_of<DObject, T>::value>>
+    void emitSignal(void(T::*signal)(DParam &), DParam& arg)
+    {
+        emitSignalImp(reinterpret_cast<SigSlotFunc>(signal), arg);
     }
 
     bool isSignal(std::string name)const;
@@ -132,6 +138,7 @@ private:
     bool connectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot);
     bool disconnectImp(SigSlotFunc&& signal, std::weak_ptr<DObject>&& receiver, SigSlotFunc&& slot);
     void emitSignalImp(SigSlotFunc&& signal, std::function<void (DObject*, SigSlotFunc)>&& func);
+    void emitSignalImp(SigSlotFunc&& signal, DParam& arg);
     bool isSignalImp(SigSlotFunc&& signal)const;
 };
 

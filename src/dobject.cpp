@@ -171,6 +171,29 @@ void DObject::emitSignalImp(SigSlotFunc&& signal, std::function<void (DObject*, 
     }
 }
 
+void DObject::emitSignalImp(SigSlotFunc&& signal, DParam& arg)
+{
+    D_D(DObject);
+    if (!d)
+        return;    
+    auto found = d->find(signal);
+    if (!found)
+        return;
+    for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
+    {
+        auto &slot = found->m_slots[i];
+        if(slot.m_slot)
+        {
+            DObject* ptr = slot.m_obj.lock().get();
+            if (ptr)
+            {
+                auto func = reinterpret_cast<void (DObject::*)(DParam&)>(slot.m_slot);
+                (ptr->*func)(arg);
+            }
+        }    
+    }
+}
+
 bool DObject::isSignalImp(SigSlotFunc&& signal)const
 {
     D_D_CONST(DObject);
