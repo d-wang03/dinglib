@@ -41,7 +41,7 @@ public:
         , perf_num(0)
         , timer(new DElapsedTimer(false))
 #ifdef __x86_64__
-        , timer2(new DElapsedTimer2(2808,false))
+        , timer2(new DElapsedTimer2(2401,false))
         , perf_sum2(0)
 #endif
     {

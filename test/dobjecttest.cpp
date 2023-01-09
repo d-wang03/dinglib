@@ -266,18 +266,19 @@ TEST_F(DObjectTest, SlotEmitTime)
     int64_t sum = 1000000;
 
     m_obj2->clearSlotCounter();
+    DParam param;
     DElapsedTimer timer;
     for (i=0; i < sum; ++i)
-        m_obj1->emitSignal(&TestObject::sig1, DParam{});
+        m_obj1->emitSignal(&TestObject::sig1, param);
     auto t = timer.elapsed<std::chrono::nanoseconds>();
     std::cout << "chrono::steady_clock: " << m_obj2->getSlot1Count() << " time signal emit cost " << t << " nanoseconds. average is " << t/m_obj2->getSlot1Count() << std::endl;
 
     #ifdef __x86_64__
     m_obj2->clearSlotCounter();
-    DElapsedTimer2 timer2(2808,true);
+    DElapsedTimer2 timer2(2401,true);
     for (i=0; i < sum; ++i)
     {
-        m_obj1->emitSignal(&TestObject::sig1, DParam{});
+        m_obj1->emitSignal(&TestObject::sig1, param);
     }
     auto t2 = timer2.elapsed();
     std::cout << "rdtscp: " <<  m_obj2->getSlot1Count() << " time signal emit cost " << t2 << " nanoseconds. average is " << t2/m_obj2->getSlot1Count() << std::endl;
