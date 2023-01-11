@@ -127,7 +127,7 @@ bool DNormalMsg::equals(const DParam &other) const
 {
     if (DParam::equals(other))
     {
-        auto rhs = static_cast<const DNormalMsg &>(other);
+        auto &rhs = static_cast<const DNormalMsg &>(other);
         auto d = d_func();
         auto d2 = rhs.d_func();
         return d && d2 && d->m_content == d2->m_content;

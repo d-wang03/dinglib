@@ -280,8 +280,8 @@ TEST_F(DObjectTest, SlotEmitTime)
     {
         m_obj1->emitSignal(&TestObject::sig1, param);
     }
-    auto t2 = timer2.elapsed();
-    std::cout << "rdtscp: " <<  m_obj2->getSlot1Count() << " time signal emit cost " << t2 << " nanoseconds. average is " << t2/m_obj2->getSlot1Count() << std::endl;
+    auto t2 = timer2.elapsedClks();
+    std::cout << "rdtscp: " <<  m_obj2->getSlot1Count() << " time signal emit cost " << t2 << " clocks. average is " << t2/m_obj2->getSlot1Count() << std::endl;
     #endif
 }
 

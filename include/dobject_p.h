@@ -30,6 +30,7 @@ struct DSignal
         {
             m_obj.reset();
             m_slot = nullptr;
+            m_raw = nullptr;
         }
         bool empty()const
         {
@@ -68,10 +69,38 @@ struct DSignal
         return m_func == nullptr;
     }
 
+    void updateBegin()
+    {
+        for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
+        {
+            if (!m_slots[i].empty())
+            {
+                m_begin = i;
+                return;
+            }
+        }
+        m_begin = MAX_SLOT_PER_SIGNAL_NUM;
+    }
+
+    void updateEnd()
+    {
+        for (int i = MAX_SLOT_PER_SIGNAL_NUM - 1; i >= 0; --i)
+        {
+            if (!m_slots[i].empty())
+            {
+                m_end = i + 1;
+                return;
+            }
+        }
+        m_end = 0;
+    }
+
     void removeSlot()
     {
         for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
             m_slots[i].clear();
+        m_begin = MAX_SLOT_PER_SIGNAL_NUM;
+        m_end = 0;
     }
 
     void removeSlot(std::weak_ptr<DObject>&& obj)
@@ -86,6 +115,8 @@ struct DSignal
                 m_slots[i].clear();
             }
         }
+        updateBegin();
+        updateEnd();
     }
 
     void removeSlot(std::weak_ptr<DObject>&& obj, SigFunc&& slot)
@@ -100,6 +131,8 @@ struct DSignal
                 m_slots[i].clear();
             }
         }
+        updateBegin();
+        updateEnd();
     }
 
     void addSlot(std::weak_ptr<DObject>&& obj, SigFunc&& slot)
@@ -109,6 +142,10 @@ struct DSignal
             if (m_slots[i].empty())
             {
                 m_slots[i].set(std::move(obj), std::move(slot));
+                if (i < m_begin)
+                    m_begin = i;
+                if (i >= m_end)
+                    m_end = i + 1;
                 break;
             }
         }
@@ -117,6 +154,8 @@ struct DSignal
     char *m_name;
     SigFunc m_func;
     DSlot m_slots[MAX_SLOT_PER_SIGNAL_NUM];
+    uint32_t m_begin;
+    uint32_t m_end;
 };
 class DObjectPrivate : public DObjectData
 {

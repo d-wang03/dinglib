@@ -46,6 +46,10 @@ public:
     {
         return (__rdtscp(&_aux) - _start)*1000/_freq;//nanoseconds
     }
+    uint64_t elapsedClks()
+    {
+        return (__rdtscp(&_aux) - _start);
+    }
 private:
     uint64_t _start;
     uint32_t _aux;

@@ -33,7 +33,7 @@ public:
     {
         if (DParam::equals(other))
         {
-            auto rhs = static_cast<const SimMsg&>(other);
+            auto &rhs = static_cast<const SimMsg&>(other);
             return m_content.dst == rhs.m_content.dst;
         }
         return false;

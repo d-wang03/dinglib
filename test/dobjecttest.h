@@ -85,6 +85,14 @@ public:
         DECLARE_PRIVATE(PerfMsg);
         public:
         PerfMsg():DParam(__func__, *new PerfMsgPrivate){}
+        virtual PerfMsg *move() noexcept override
+        {
+            return new PerfMsg(std::move(*this));
+        }
+        virtual PerfMsg *clone() const override
+        {
+            return new PerfMsg(*this);
+        }
         inline uint64_t getValue()const
         {
             D_D_CONST(PerfMsg);
@@ -96,6 +104,7 @@ public:
             if (d)
                 d->m_value = value;
         }
+
     };
     void perfSender(DParam& param)
     {
@@ -117,7 +126,7 @@ public:
         {
             perf_sum = timer->elapsed<std::chrono::nanoseconds>();
         #ifdef __x86_64__
-            perf_sum2 += timer2->elapsed();
+            perf_sum2 += timer2->elapsedClks();
         #endif            
             return;
         }
@@ -132,7 +141,7 @@ public:
     {
         std::cout << "std::chrono: Total send->receive: " << perf_index << ", cost " << perf_sum << " nanoseconds. average cost is " << perf_sum/perf_index << std::endl;
         #ifdef __x86_64
-        std::cout << "rdtscp: Total send->receive: " << perf_index << ", cost " << perf_sum2 << " nanoseconds. average cost is " << perf_sum2/perf_index << std::endl;
+        std::cout << "rdtscp: Total send->receive: " << perf_index << ", cost " << perf_sum2 << " clocks. average cost is " << perf_sum2/perf_index << std::endl;
         #endif
     }
 

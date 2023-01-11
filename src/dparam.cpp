@@ -23,7 +23,7 @@ namespace ding
     {
         if (!param.is_type<DLogMsg>())
             return;
-        auto logMsg = static_cast<DLogMsg&>(param);
+        auto &logMsg = static_cast<DLogMsg&>(param);
         //do something
     }
     \endcode
@@ -230,14 +230,15 @@ std::string DParam::toString() const
  */
 bool DParam::equals(const DParam &other) const
 {
-    auto type1 = getTypeName();
-    auto type2 = other.getTypeName();
-    if (type1 && type2 && strcmp(type1, type2) == 0)
-        return true;
-    else if (!type1 && !type2)
-        return true;
-    else
-        return false;
+    // auto type1 = getTypeName();
+    // auto type2 = other.getTypeName();
+    // if (type1 && type2 && strcmp(type1, type2) == 0)
+    //     return true;
+    // else if (!type1 && !type2)
+    //     return true;
+    // else
+    //     return false;
+    return typeid(other) == typeid(*this);
 }
 /*!
     Override operator ==.

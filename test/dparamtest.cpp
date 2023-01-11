@@ -95,7 +95,7 @@ TEST(DParamTest, equals)
     DParam a;
     a.setTypeName("TypeA");
     DParam b;
-    EXPECT_FALSE(a.equals(b));
+    EXPECT_TRUE(a.equals(b));
     b = a;
     EXPECT_TRUE(a.equals(b));
 }
@@ -121,7 +121,7 @@ TEST(DParamTest, equal_op)
     DParam a;
     a.setTypeName("TypeA");
     DParam b;
-    EXPECT_FALSE(a == b);
+    EXPECT_TRUE(a == b);
     b = a;
     EXPECT_TRUE(a == b);
 }

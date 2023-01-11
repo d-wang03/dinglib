@@ -162,12 +162,13 @@ void DObject::emitSignalImp(SigSlotFunc&& signal, std::function<void (DObject*, 
     auto found = d->find(signal);
     if (!found)
         return;
-    for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
+    for (uint32_t i = found->m_begin; i < found->m_end; ++i)
     {
         auto &slot = found->m_slots[i];
-        auto ptr = slot.m_obj.lock().get();
-        if(ptr)
-            func(ptr,slot.m_slot);
+        if (!slot.empty())
+        {
+            func(slot.m_raw, slot.m_slot);
+        }
     }
 }
 
@@ -179,19 +180,10 @@ void DObject::emitSignalImp(SigSlotFunc&& signal, DParam& arg)
     auto found = d->find(signal);
     if (!found)
         return;
-    for (int i = 0; i < MAX_SLOT_PER_SIGNAL_NUM; ++i)
+    for (uint32_t i = found->m_begin; i < found->m_end; ++i)
     {
-        auto &slot = found->m_slots[i];
-        // if(slot.m_slot)
-        // {
-        //     DObject* ptr = slot.m_obj.lock().get();
-        //     if (ptr)
-        //     {
-        //         auto func = reinterpret_cast<void (DObject::*)(DParam&)>(slot.m_slot);
-        //         (ptr->*func)(arg);
-        //     }
-        // }    
-        if (slot.m_slot || !slot.m_obj.expired())
+        auto &slot = found->m_slots[i];  
+        if (!slot.empty())
         {
             auto func = reinterpret_cast<void (DObject::*)(DParam&)>(slot.m_slot);
             (slot.m_raw->*func)(arg);

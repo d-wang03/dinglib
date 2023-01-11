@@ -126,7 +126,7 @@ TEST(DDispatcherTest, perf)
     TestObject::PerfMsg msg;
     msg.setValue(100);
     obj->perfSender(msg);
-    sleep(3);
+    sleep(1);
     dispatcher->stop();
     obj->showPerfResult();
     // EXPECT_EQ(obj->getSlot2Count(), 10);

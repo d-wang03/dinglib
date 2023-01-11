@@ -152,7 +152,7 @@ bool DLogMsg::equals(const DParam &other) const
 {
     if (DParam::equals(other))
     {
-        auto rhs = static_cast<const DLogMsg &>(other);
+        auto &rhs = static_cast<const DLogMsg &>(other);
         auto d = d_func();
         auto d2 = rhs.d_func();
         if (d && d2 && d->m_level == d2->m_level)
