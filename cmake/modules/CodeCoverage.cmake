@@ -162,3 +162,33 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE_COBERTURA _targetname _testrunner _outputname
 	)
 
 ENDFUNCTION() # SETUP_TARGET_FOR_COVERAGE_COBERTURA
+
+# Param _targetname     The name of new the custom make target
+# Param _testrunner     The name of the target which runs the tests
+# Param _outputname     output is generated as _outputname.html
+# Optional fourth parameter is passed as arguments to _testrunner
+#   Pass them in list form, e.g.: "-j;2" for -j 2
+FUNCTION(SETUP_TARGET_FOR_COVERAGE_GCOVR _targetname _testrunner _outputname)
+
+	IF(NOT GCOVR_PATH)
+		MESSAGE(FATAL_ERROR "gcovr not found! Aborting...")
+	ENDIF() # NOT GCOVR_PATH
+
+	ADD_CUSTOM_TARGET(${_targetname}
+
+		# Run tests
+		${_testrunner} ${ARGV3}
+
+		# Running gcovr
+		COMMAND ${GCOVR_PATH} -s -r ${CMAKE_SOURCE_DIR} -e '${CMAKE_SOURCE_DIR}/test/' -e '${CMAKE_SOURCE_DIR}/build/' --gcov-ignore-parse-errors --html-nested ${_outputname}.html
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		COMMENT "Running gcovr to produce gcovr code coverage report."
+	)
+
+	# Show info where to find the report
+	ADD_CUSTOM_COMMAND(TARGET ${_targetname} POST_BUILD
+		COMMAND ;
+		COMMENT "Gcovr code coverage report saved in ${_outputname}.xml."
+	)
+
+ENDFUNCTION() # SETUP_TARGET_FOR_COVERAGE_GCOVR
