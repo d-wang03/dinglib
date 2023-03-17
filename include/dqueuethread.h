@@ -3,10 +3,10 @@
 
 #include "dcyclicthread.h"
 #include "utility/dsyncqueue.h"
+#include "utility/dlockfreequeue.h"
 
 namespace ding
 {
-// template <typename TMsg, typename = std::enable_if_t<std::is_base_of<DParam, std::decay_t<TMsg>>::value>>
 class DQueueThread : public DCyclicThread
 {
     DISABLE_COPY(DQueueThread)
@@ -18,20 +18,26 @@ public:
     // slot input
     void input(DParam &param)
     {
-        // if (!param.is_derived_from<TMsg>())
-        //     return;
-        m_queue.push_back(param);
+        if (enable_lockfree)
+            m_lfqueue.push_back(param);
+        else
+            m_queue.push_back(param);
         bypass(param);
+    }
+
+    void setLockfree(bool flag)
+    {
+        enable_lockfree = flag;
     }
 
 protected:
     DQueueThread(const char *type)
-        : DCyclicThread(type)
+        : DCyclicThread(type), enable_lockfree(true)
     {
         ADD_SIGNAL(DQueueThread, bypass);
     }
     DQueueThread(const char *type, DCyclicThreadPrivate &dd)
-        : DCyclicThread(type, dd)
+        : DCyclicThread(type, dd), enable_lockfree(true)
     {
         ADD_SIGNAL(DQueueThread, bypass);
     }
@@ -41,7 +47,7 @@ protected:
     virtual int cycle() override
     {
         int ret = 0;
-        auto pMsg = m_queue.pop_front();
+        DParam* pMsg = enable_lockfree ? m_lfqueue.pop_front() : m_queue.pop_front();
         if (pMsg != nullptr)
             ret = processMsg(*pMsg);
         return ret;
@@ -54,6 +60,8 @@ protected:
 
 private:
     DSyncQueue<DParam> m_queue;
+    DLockFreeQueue<DParam> m_lfqueue;
+    bool enable_lockfree;
 };
 
 } // namespace ding

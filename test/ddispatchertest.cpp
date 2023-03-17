@@ -3,6 +3,7 @@
 #include "dnormalmsg.h"
 #include "dobjecttest.h"
 #include <memory>
+#include <unistd.h>
 
 using namespace ding;
 TEST(DDispatcherTest, ctor)
@@ -95,26 +96,53 @@ TEST(DDispatcherTest, run)
     EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Warning, "", ""), &DDispatcher::output<2>));
     EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Error, "", ""), &DDispatcher::output<3>));
     auto receiver = makeObject<TestObject>();
-    auto sender = makeObject<DObject>();
-    EXPECT_TRUE(connect(sender, &DObject::logging, dispatcher, &DDispatcher::input));
+    auto sender = makeObject<TestObject>();
+    EXPECT_TRUE(connect(sender, &TestObject::sig1, dispatcher, &DDispatcher::input));
     EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<0>, receiver, &TestObject::slot1));
     EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<1>, receiver, &TestObject::slot1));
     EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<2>, receiver, &TestObject::slot2));
     EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<3>, receiver, &TestObject::slot2));
     EXPECT_TRUE(dispatcher->start());
-    sender->loggingD("This is debug message.");
-    sender->loggingI("This is info message.");
-    sender->loggingW("This is warning message.");
-    sender->loggingE("This is error message.");
+    sender->sig1(* new DLogMsg(DLogMsg::Debug, "sender", "This is debug message."));
+    sender->sig1(*new DLogMsg(DLogMsg::Info, "sender", "This is info message."));
+    sender->sig1(*new DLogMsg(DLogMsg::Warning, "sender", "This is warning message."));
+    sender->sig1(*new DLogMsg(DLogMsg::Error, "sender", "This is error message."));
     sleep(1);
     dispatcher->stop();
     EXPECT_EQ(receiver->getSlot1Count(), 2);
     EXPECT_EQ(receiver->getSlot2Count(), 2);
 }
 
-TEST(DDispatcherTest, perf)
+TEST(DDispatcherTest, run_as_lockfree)
 {
     auto dispatcher = makeObject<DDispatcher>();
+    dispatcher->setLockfree(true);
+    EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Debug, "", ""), &DDispatcher::output<0>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Info, "", ""), &DDispatcher::output<1>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Warning, "", ""), &DDispatcher::output<2>));
+    EXPECT_TRUE(dispatcher->addRoutePath(new DLogMsg(DLogMsg::Error, "", ""), &DDispatcher::output<3>));
+    auto receiver = makeObject<TestObject>();
+    auto sender = makeObject<TestObject>();
+    EXPECT_TRUE(connect(sender, &TestObject::sig1, dispatcher, &DDispatcher::input));
+    EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<0>, receiver, &TestObject::slot1));
+    EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<1>, receiver, &TestObject::slot1));
+    EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<2>, receiver, &TestObject::slot2));
+    EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<3>, receiver, &TestObject::slot2));
+    EXPECT_TRUE(dispatcher->start());
+    sender->sig1(* new DLogMsg(DLogMsg::Debug, "sender", "This is debug message."));
+    sender->sig1(*new DLogMsg(DLogMsg::Info, "sender", "This is info message."));
+    sender->sig1(*new DLogMsg(DLogMsg::Warning, "sender", "This is warning message."));
+    sender->sig1(*new DLogMsg(DLogMsg::Error, "sender", "This is error message."));
+    sleep(1);
+    dispatcher->stop();
+    EXPECT_EQ(receiver->getSlot1Count(), 2);
+    EXPECT_EQ(receiver->getSlot2Count(), 2);
+}
+
+TEST(DDispatcherTest, perf_lock)
+{
+    auto dispatcher = makeObject<DDispatcher>();
+    dispatcher->setLockfree(false);
     EXPECT_TRUE(dispatcher->addRoutePath(new TestObject::PerfMsg(), &DDispatcher::output<0>));
 
     auto obj = makeObject<TestObject>();
@@ -129,6 +157,24 @@ TEST(DDispatcherTest, perf)
     sleep(1);
     dispatcher->stop();
     obj->showPerfResult();
-    // EXPECT_EQ(obj->getSlot2Count(), 10);
 }
 
+TEST(DDispatcherTest, perf_lockfree)
+{
+    auto dispatcher = makeObject<DDispatcher>();
+    dispatcher->setLockfree(true);
+    EXPECT_TRUE(dispatcher->addRoutePath(new TestObject::PerfMsg(), &DDispatcher::output<0>));
+
+    auto obj = makeObject<TestObject>();
+    obj->setPerfNum(1000000);
+    EXPECT_TRUE(connect(obj, &TestObject::perfSender, dispatcher, &DDispatcher::input));
+    EXPECT_TRUE(connect(dispatcher, &DDispatcher::output<0>, obj, &TestObject::perfReceiver));
+    EXPECT_TRUE(dispatcher->start());
+    
+    TestObject::PerfMsg msg;
+    msg.setValue(100);
+    obj->perfSender(msg);
+    sleep(1);
+    dispatcher->stop();
+    obj->showPerfResult();
+}

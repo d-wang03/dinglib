@@ -5,17 +5,17 @@
 #include <thread>
 #include "dobjecttest.h"
 
-using namespace ding;
+using namespace ding; 
 using namespace std::chrono_literals;
 
-TEST(TLoggerTest, messagesBeforeStart)
+TEST(DLoggerTest, messagesBeforeStart)
 {
     std::vector<std::string> buffer;
     auto logger = makeObject<DLogger>("TLoggerTest");
     logger->setDefaultProcessor([&buffer](const DLogMsg &msg) { buffer.emplace_back(msg.getContent()); });
     auto testObj = makeObject<TestObject>();
     // EXPECT_TRUE(testObj->isSignal(&TestObject::logging));
-    EXPECT_TRUE(testObj->connect(&TestObject::logging, logger, &DLogger::input));
+    EXPECT_TRUE(testObj->connect(&DObject::logging, logger, &DLogger::input));
     testObj->loggingI("The first message.");
     testObj->loggingI("The second message.");
     testObj->loggingI("The third message.");

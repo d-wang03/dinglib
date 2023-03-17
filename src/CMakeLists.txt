@@ -25,7 +25,7 @@ list(SORT CORE_SRCS)
 #add target
 # add_library(ding SHARED ${CORE_SRCS} ${TIMER_SRCS}
     # ${LOGGING_SRCS} ${DRIVER_SRCS} ${LOGIC_SRCS} ${SM_SRCS})
-add_library(ding SHARED ${CORE_SRCS})
+add_library(ding ${CORE_SRCS})
 
 set_target_properties(ding
     PROPERTIES

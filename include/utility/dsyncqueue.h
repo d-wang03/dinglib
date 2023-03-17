@@ -38,6 +38,14 @@ public:
         sem_post(&m_semMsg);
     }
 
+    void push(Msg *item)
+    {
+        sem_wait(&m_semMutex);
+        m_queue.emplace_back(item);
+        sem_post(&m_semMutex);
+        sem_post(&m_semMsg);
+    }
+
     template <typename T, typename = std::enable_if_t<std::is_same<Msg, std::decay_t<T>>::value>>
     void push_front(T &&item)
     {
@@ -67,7 +75,7 @@ public:
         return ret;
     }
 
-    bool empty()const
+    bool empty()
     {
         sem_wait(&m_semMutex);
         bool ret = m_queue.empty();
@@ -75,7 +83,7 @@ public:
         return ret;
     }
 
-    size_t size()const
+    size_t size()
     {
         sem_wait(&m_semMutex);
         auto ret = m_queue.size();

@@ -17,7 +17,7 @@ add_subdirectory(app)
 add_subdirectory(test)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
-if (CMAKE_BUILD_TYPE MATCHES Coverage)
+if (CMAKE_BUILD_TYPE MATCHES Debug)
     include(CodeCoverage)
     setup_target_for_coverage(coverage TestDing coverage)
 endif()
