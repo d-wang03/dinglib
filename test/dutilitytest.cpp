@@ -208,3 +208,57 @@ TEST(DSyncQueue, perf)
     EXPECT_EQ(syncqueue.size(), 0);
     check(times, 1, consumer1, consumer2);
 }
+
+TEST(DLockFreeQueue, size)
+{
+    DLockFreeQueue<DNormalMsg> lfqueue;
+    int size = 14;
+    for (int i = 0; i < size; ++i)
+        lfqueue.push(new DNormalMsg());
+    EXPECT_EQ(lfqueue.size(), size);
+}
+
+TEST(DLockFreeQueue, empty)
+{
+    DLockFreeQueue<DNormalMsg> lfqueue;
+    EXPECT_TRUE(lfqueue.empty());
+    lfqueue.push(new DNormalMsg());
+    EXPECT_FALSE(lfqueue.empty());
+}
+
+TEST(DLockFreeQueue, clear)
+{
+    DLockFreeQueue<DNormalMsg> lfqueue;
+    EXPECT_TRUE(lfqueue.empty());
+    int size = 14;
+    for (int i = 0; i < size; ++i)
+        lfqueue.push(new DNormalMsg());
+    EXPECT_EQ(lfqueue.size(), size);
+    EXPECT_FALSE(lfqueue.empty());
+    lfqueue.clear();
+    EXPECT_TRUE(lfqueue.empty());
+    EXPECT_EQ(lfqueue.size(), 0);
+}
+
+TEST(DLockFreeQueue, contains)
+{
+    DLockFreeQueue<DNormalMsg> lfqueue;
+    auto msg = new DNormalMsg();
+    EXPECT_FALSE(lfqueue.contains(msg));
+    lfqueue.push(msg);
+    EXPECT_TRUE(lfqueue.contains(msg));
+    lfqueue.clear();
+    EXPECT_FALSE(lfqueue.contains(msg));
+    int size = 6;
+    for (int i = 0; i < size; ++i)
+        lfqueue.push(new DNormalMsg());
+    lfqueue.push(msg);
+    for (int i = 0; i < size; ++i)
+        lfqueue.push(new DNormalMsg());
+    EXPECT_TRUE(lfqueue.contains(msg));
+    for (int i = 0; i < size; ++i)
+        (void)lfqueue.pop();
+    lfqueue.pop();
+    EXPECT_FALSE(lfqueue.contains(msg));
+}
+

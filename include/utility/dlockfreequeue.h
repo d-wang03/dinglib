@@ -12,7 +12,7 @@ template <typename T, uint32_t CAP = 16>
 class DLockFreeQueue
 {
 public:
-    DLockFreeQueue()
+    DLockFreeQueue(): m_mask(CAP - 1), m_size(CAP), m_in(1), m_out(0)
     {
         m_mask = CAP - 1;
         m_size = CAP;
@@ -62,8 +62,8 @@ public:
 
     T* pop()
     {
-        unsigned int cur;
-        unsigned int next;
+        uint32_t cur;
+        uint32_t next;
         uint64_t *nextVal;
         uint64_t ret;
 
@@ -93,6 +93,26 @@ public:
     T* pop_front()
     {
         return pop();
+    }
+
+    bool contains(T* t)const
+    {
+        for (uint32_t i = m_out + 1; i < m_in; ++i)
+        {
+            if (buffer[i & m_mask] == reinterpret_cast<uint64_t>(t))
+                return true;
+        }
+        return false;
+    }
+
+    void clear()
+    {
+        m_in = 1;
+        m_out = 0;
+        buffer[m_in] = flag_in;
+        buffer[m_out] = flag_out;
+        for (uint32_t i = 2; i < CAP; ++i)
+            buffer[i] = (flag_empty | i);
     }
 
 private:

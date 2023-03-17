@@ -28,7 +28,8 @@ public:
     virtual DParam *clone() const override;
     // move
     virtual DParam *move() noexcept override;
-
+    //init
+    void init(const char *type);
     // to string
     virtual std::string toString() const;
 

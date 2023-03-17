@@ -200,6 +200,11 @@ DParam *DParam::clone() const
     return new DParam(*this);
 }
 
+void DParam::init(const char *type)
+{
+    setTypeName(type);
+}
+
 /*!
     Returns the pointer of moved parameter object.
 
